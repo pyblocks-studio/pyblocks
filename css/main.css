@@ -208,6 +208,9 @@ button {
     background: #4a5277;
 }
 
+.btn-danger { background: #f7768e; color: #171923; }
+.btn:disabled { cursor: not-allowed; opacity: .55; transform: none; }
+
 .app-container {
     min-height: 0;
     flex: 1;
@@ -241,6 +244,13 @@ button {
     display: flex;
     flex-direction: column;
 }
+
+.console-input { padding-top: 10px; }
+.console-input label { display: block; margin-bottom: 6px; color: var(--text-bright); font-size: .8rem; }
+.console-input > div { display: flex; gap: 8px; }
+.console-input input { min-width: 0; flex: 1; padding: 9px 10px; border: 1px solid var(--border-color); background: var(--bg-editor); color: var(--text-bright); font: .85rem Consolas, monospace; }
+
+:where(button, a, input, select):focus-visible { outline: 3px solid var(--accent-blue); outline-offset: 2px; }
 
 .preview-box {
     flex: 1;
@@ -492,4 +502,17 @@ button {
     .libraries-list {
         grid-template-columns: 1fr;
     }
+}
+
+@media (max-width: 560px) {
+    .navbar { height: auto; min-height: 58px; padding: max(8px, env(safe-area-inset-top)) 10px 8px; gap: 8px; align-items: flex-start; }
+    .editor-brand-name, .editor-brand .version { display: none; }
+    .actions { justify-content: flex-end; flex-wrap: wrap; gap: 6px; }
+    .actions > button, .menu-btn, .settings-gear-btn { min-width: 44px; min-height: 44px; }
+    #libraries-btn { order: 4; }
+    .workspace-panel { min-width: 0; min-height: 52%; }
+    .code-panel { height: 48%; flex-direction: column; overflow: auto; }
+    .preview-box, .terminal-box { width: 100%; min-height: 190px; }
+    .preview-box { border-right: 0; border-bottom: 1px solid var(--border-color); }
+    .dialog-backdrop { padding: 10px; }
 }

@@ -1,0 +1,15 @@
+{
+  "name": "pyblocks-studio",
+  "version": "0.5.2",
+  "private": true,
+  "scripts": {
+    "test": "node --test",
+    "lint": "eslint js tests",
+    "format:check": "prettier --check \"**/*.{html,css,js,json,md}\"",
+    "check": "npm run test && npm run lint"
+  },
+  "devDependencies": {
+    "eslint": "9.32.0",
+    "prettier": "3.6.2"
+  }
+}

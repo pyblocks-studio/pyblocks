@@ -22,15 +22,21 @@
                     <span></span><span></span><span></span>
                 </button>
                 <div id="project-menu" class="project-menu" role="menu" hidden>
-                    <button id="import-btn" type="button" role="menuitem">Import Code</button>
-                    <button id="export-btn" type="button" role="menuitem">Export Code</button>
+                    <button id="new-project-btn" type="button" role="menuitem">New Project</button>
+                    <button id="open-project-btn" type="button" role="menuitem">Open Project…</button>
+                    <button id="save-project-btn" type="button" role="menuitem">Save Project…</button>
+                    <div class="menu-separator" role="separator"></div>
+                    <button id="import-btn" type="button" role="menuitem">Import Python as Raw Code…</button>
+                    <button id="export-btn" type="button" role="menuitem">Export Python…</button>
                     <div class="menu-separator" role="separator"></div>
                     <button id="clear-btn" class="danger-action" type="button" role="menuitem">Clear Workspace</button>
                 </div>
                 <input id="import-file-input" type="file" accept=".py,text/x-python,text/plain" hidden>
+                <input id="project-file-input" type="file" accept=".pyblocks,application/json" hidden>
             </div>
             <button class="settings-gear-btn" type="button" data-settings-button aria-label="Open settings">⚙</button>
             <button id="run-btn" class="btn btn-primary" type="button">Run Python</button>
+            <button id="stop-btn" class="btn btn-danger" type="button" disabled>Stop</button>
         </div>
     </header>
 
@@ -49,6 +55,10 @@
                 <div id="console-output" class="terminal-body" role="log" aria-live="polite">
                     <div class="console-line text-muted">&gt; Ready</div>
                 </div>
+                <form id="console-input-form" class="console-input" hidden>
+                    <label id="console-input-label" for="console-input">Python is waiting for input</label>
+                    <div><input id="console-input" autocomplete="off"><button type="submit" class="btn btn-primary">Send</button></div>
+                </form>
             </div>
         </section>
     </main>
@@ -118,6 +128,7 @@
     <script src="vendor/blockly/blockly.min.js"></script>
     <script src="vendor/blockly/python_compressed.js"></script>
     <script src="js/blocks.js"></script>
+    <script src="js/project-format.js"></script>
     <script src="js/python-engine.js"></script>
     <script src="js/main.js"></script>
     <script src="js/theme-settings.js"></script>

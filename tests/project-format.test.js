@@ -1,0 +1,34 @@
+'use strict';
+
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const format = require('../js/project-format.js');
+
+const valid = () => ({format: format.FORMAT, version: format.VERSION, name: 'Demo', libraries: ['random', 'math', 'math'], workspace: {blocks: {blocks: []}}});
+
+test('normalizes and deterministically sorts selected libraries', () => {
+    assert.deepEqual(format.validate(valid()).libraries, ['math', 'random']);
+});
+
+test('rejects malformed JSON with an understandable error', () => {
+    assert.throws(() => format.parse('{'), /Project JSON is invalid/);
+});
+
+test('rejects unknown project versions', () => {
+    const project = valid(); project.version = 99;
+    assert.throws(() => format.validate(project), /Unsupported PyBlocks project version/);
+});
+
+test('rejects prototype-pollution properties', () => {
+    assert.throws(() => format.parse('{"format":"pyblocks-project","version":1,"workspace":{},"__proto__":{}}'), /unsafe property/);
+});
+
+test('filters invalid library identifiers and removes duplicates', () => {
+    const project = valid(); project.libraries = ['math', 'bad-name', '__import__("x")', 'math'];
+    assert.deepEqual(format.validate(project).libraries, ['math']);
+});
+
+test('requires Blockly workspace state', () => {
+    const project = valid(); delete project.workspace;
+    assert.throws(() => format.validate(project), /workspace data is missing/);
+});

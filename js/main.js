@@ -81,6 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initProjectMenu(workspace);
     registerFunctionCategory(workspace);
     initLibrariesDialog(workspace);
+    window.PythonEngine.restoreAutosave();
 
     const updateCode = (event) => {
         if (event?.type === Blockly.Events.BLOCK_CREATE) {
@@ -88,6 +89,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (!event || !event.isUiEvent) {
             window.PythonEngine.updatePreview();
+            if (event) window.PythonEngine.markChanged();
         }
         if (event && [Blockly.Events.BLOCK_CREATE, Blockly.Events.BLOCK_DELETE, Blockly.Events.BLOCK_CHANGE].includes(event.type)) {
             workspace.refreshToolboxSelection?.();
@@ -96,6 +98,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     workspace.addChangeListener(updateCode);
     window.addEventListener('resize', () => Blockly.svgResize(workspace));
+    new ResizeObserver(() => Blockly.svgResize(workspace)).observe(document.querySelector('.workspace-panel'));
+    window.addEventListener('beforeunload', event => {
+        if (!window.PythonEngine.dirty) return;
+        event.preventDefault();
+        event.returnValue = '';
+    });
 
     console.info('PyBlocks Studio v0.5.2 initialized with Blockly 13.2.0.');
 });
@@ -128,6 +136,9 @@ function initProjectMenu(workspace) {
     const menu = document.getElementById('project-menu');
     const importButton = document.getElementById('import-btn');
     const importInput = document.getElementById('import-file-input');
+    const projectInput = document.getElementById('project-file-input');
+    const confirmReplacement = action => !window.PythonEngine.dirty ||
+        window.confirm(`${action} will replace unsaved changes. Continue?`);
 
     const setMenuOpen = (open) => {
         menu.hidden = !open;
@@ -158,14 +169,11 @@ function initProjectMenu(workspace) {
         importInput.value = '';
         if (!file) return;
 
-        if (workspace.getAllBlocks(false).length > 0 &&
-            !window.confirm('Importing code will replace the current workspace. Continue?')) {
-            return;
-        }
+        if (!confirmReplacement('Importing Python')) return;
 
         try {
             const code = await file.text();
-            window.PythonEngine.importCode(code);
+            window.PythonEngine.importRawPython(code);
         } catch (error) {
             window.PythonEngine.showError(`Could not import ${file.name}: ${error.message}`);
         }
@@ -175,10 +183,40 @@ function initProjectMenu(workspace) {
         setMenuOpen(false);
     });
 
+    document.getElementById('new-project-btn').addEventListener('click', () => {
+        setMenuOpen(false);
+        if (confirmReplacement('Starting a new project')) window.PythonEngine.newProject();
+    });
+    document.getElementById('save-project-btn').addEventListener('click', () => {
+        setMenuOpen(false);
+        window.PythonEngine.saveProject();
+    });
+    document.getElementById('open-project-btn').addEventListener('click', () => {
+        setMenuOpen(false);
+        if (confirmReplacement('Opening a project')) projectInput.click();
+    });
+    projectInput.addEventListener('change', async () => {
+        const file = projectInput.files?.[0];
+        projectInput.value = '';
+        if (!file) return;
+        if (file.size > window.PyBlocksProjectFormat.MAX_FILE_BYTES) {
+            window.PythonEngine.showError('Project exceeds the 5 MB size limit.');
+            return;
+        }
+        try {
+            const project = window.PyBlocksProjectFormat.parse(await file.text());
+            window.PythonEngine.loadProject(project, {saved: true});
+            window.PythonEngine.saveAutosave();
+            window.PythonEngine.showNotice(`Opened project: ${project.name}`);
+        } catch (error) {
+            window.PythonEngine.showError(`Could not open ${file.name}: ${error.message}`);
+        }
+    });
+
     document.getElementById('clear-btn').addEventListener('click', () => {
         setMenuOpen(false);
         if (workspace.getAllBlocks(false).length === 0) return;
-        if (window.confirm('Clear every block from the workspace?')) {
+        if (confirmReplacement('Clearing the workspace') && window.confirm('Clear every block from the workspace?')) {
             workspace.clear();
         }
     });
@@ -243,8 +281,11 @@ function initLibrariesDialog(workspace) {
     modules.forEach(([moduleName, description]) => {
         const label = document.createElement('label');
         label.className = 'library-option';
-        label.innerHTML = `<input type="checkbox" value="${moduleName}">
-            <strong>${moduleName}</strong><small>${description}</small>`;
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox'; checkbox.value = moduleName;
+        const strong = document.createElement('strong'); strong.textContent = moduleName;
+        const small = document.createElement('small'); small.textContent = description;
+        label.append(checkbox, strong, small);
         list.appendChild(label);
     });
 
@@ -263,6 +304,12 @@ function initLibrariesDialog(workspace) {
     };
 
     list.addEventListener('change', refresh);
+    document.addEventListener('pyblocks:libraries-changed', event => {
+        const selected = new Set(event.detail || []);
+        list.querySelectorAll('input').forEach(input => { input.checked = selected.has(input.value); });
+        updateLibraryToolbox(workspace, [...selected], modules);
+        count.textContent = selected.size ? `${selected.size} ${selected.size === 1 ? 'library' : 'libraries'} selected` : 'No libraries selected';
+    });
     document.getElementById('libraries-btn').addEventListener('click', () => {
         dialog.hidden = false;
         dialog.querySelector('input')?.focus();
