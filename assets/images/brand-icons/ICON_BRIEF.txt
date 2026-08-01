@@ -1,0 +1,6 @@
+Future PyBlocks brand assets:
+- Square app icon using a rigid "Py" block shape
+- Gear/settings icon matching the editor
+- Play/run icon and import/export symbols
+- SVG preferred for icons; PNG fallback at 32, 64, 128, and 512 pixels
+- Palette: #9ece6a, #7aa2f7, #1a1d2d

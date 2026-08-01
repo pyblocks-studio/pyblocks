@@ -1,0 +1,7 @@
+Capture these images after major releases:
+1. Empty editor workspace in dark mode
+2. Function definition and generated call block
+3. Library selector with math and random enabled
+4. Completed beginner program with translated Python and console output
+5. Homepage desktop and mobile views
+Use WebP, avoid personal file paths, and capture at 1440x900 where possible.

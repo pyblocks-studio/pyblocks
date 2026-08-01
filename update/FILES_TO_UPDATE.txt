@@ -1,0 +1,947 @@
+index.html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PyBlocks Studio</title>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/blocks.css">
+</head>
+<body>
+    <header class="navbar">
+        <div class="logo">
+            <h1>PyBlocks <span class="version">v0.2.3</span></h1>
+        </div>
+        <div class="actions">
+            <button id="run-btn" class="btn btn-primary">Run Python</button>
+            <button id="export-btn" class="btn btn-secondary">Export Code</button>
+        </div>
+    </header>
+
+    <main class="app-container">
+        <!-- Left Sidebar Palette -->
+        <aside class="sidebar">
+            <h3 class="section-title">PALETTE</h3>
+            <div class="category-list">
+                <button class="category-btn active" data-category="output">
+                    <span class="icon-dot output-dot"></span> Output
+                </button>
+                <button class="category-btn" data-category="variables">
+                    <span class="icon-dot var-dot"></span> Variables
+                </button>
+                <button class="category-btn" data-category="logic">
+                    <span class="icon-dot logic-dot"></span> Logic
+                </button>
+            </div>
+        </aside>
+
+        <!-- Dynamic Drawer Panel -->
+        <section class="drawer">
+            <h3 id="drawer-title" class="section-title">Output Blocks</h3>
+            <div id="drawer-content" class="drawer-content">
+                <!-- Dynamic blocks loaded from JSON -->
+            </div>
+        </section>
+
+        <!-- Center Workspace -->
+        <section class="workspace-container">
+            <h3 class="section-title">Workspace</h3>
+            <div id="workspace" class="workspace">
+                <p class="placeholder">Drag blocks here to build code...</p>
+            </div>
+        </section>
+
+        <!-- Right Side Preview & Terminal Panel -->
+        <section class="code-panel">
+            <div class="preview-box">
+                <h3 class="section-title">TRANSLATED PYTHON CODE</h3>
+                <pre class="code-editor"><code id="python-preview"># Generated code will appear here...</code></pre>
+            </div>
+            <div class="terminal-box">
+                <h3 class="section-title">CONSOLE / TERMINAL OUTPUT</h3>
+                <div id="console-output" class="terminal-body">
+                    <p class="console-line text-muted">&gt; Ready</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="js/block-factory.js"></script>
+    <script src="js/drag-drop.js"></script>
+    <script src="js/python-engine.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
+===
+css/main.css
+:root {
+    --bg-dark: #0f111a;
+    --bg-card: #1a1d2d;
+    --bg-hover: #24283b;
+    --accent-blue: #7aa2f7;
+    --accent-green: #9ece6a;
+    --text-main: #a9b1d6;
+    --text-bright: #c0caf5;
+    --border-color: #292e42;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Custom Scrollbar Styling */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(15, 17, 26, 0.5);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #2b3045;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #414868;
+}
+
+body {
+    background-color: var(--bg-dark);
+    color: var(--text-main);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.navbar {
+    height: 55px;
+    background-color: var(--bg-card);
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+}
+
+.logo h1 {
+    font-size: 1.2rem;
+    color: var(--text-bright);
+}
+
+.logo .version {
+    font-size: 0.8rem;
+    color: var(--accent-blue);
+    margin-left: 5px;
+}
+
+.actions {
+    display: flex;
+    gap: 10px;
+}
+
+.btn {
+    padding: 8px 16px;
+    border-radius: 6px;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn-primary {
+    background-color: var(--accent-green);
+    color: #15161e;
+}
+
+.btn-primary:hover {
+    background-color: #b9f27c;
+}
+
+.btn-secondary {
+    background-color: #3b4261;
+    color: var(--text-bright);
+}
+
+.btn-secondary:hover {
+    background-color: #414868;
+}
+
+.app-container {
+    display: flex;
+    flex-direction: row;
+    flex: 1;
+    overflow: hidden;
+    width: 100%;
+}
+
+.sidebar {
+    width: 140px;
+    min-width: 140px;
+    background-color: var(--bg-card);
+    border-right: 1px solid var(--border-color);
+    padding: 15px 10px;
+}
+
+.drawer {
+    width: 240px;
+    min-width: 240px;
+    background-color: #16161e;
+    border-right: 1px solid var(--border-color);
+    padding: 15px 10px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.drawer-content {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 15px;
+    flex: 1;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.section-title {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #565f89;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.category-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 15px;
+}
+
+.category-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: none;
+    border: none;
+    color: var(--text-main);
+    padding: 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    text-align: left;
+    width: 100%;
+}
+
+.category-btn:hover {
+    background-color: var(--bg-hover);
+}
+
+.category-btn.active {
+    background-color: var(--bg-hover);
+    color: var(--text-bright);
+}
+
+.icon-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+
+.output-dot { background-color: #bb9af7; }
+.var-dot { background-color: #ff9e64; }
+.logic-dot { background-color: #73daca; }
+
+.workspace-container {
+    flex: 1;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    min-width: 300px;
+}
+
+.workspace {
+    flex: 1;
+    border: 2px dashed var(--border-color);
+    border-radius: 8px;
+    margin-top: 15px;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    overflow-y: auto;
+}
+
+.placeholder {
+    color: #565f89;
+    text-align: center;
+    margin-top: 20px;
+    user-select: none;
+}
+
+.code-panel {
+    width: 400px;
+    min-width: 400px;
+    background-color: #16161e;
+    border-left: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+}
+
+.preview-box {
+    flex: 1;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    border-bottom: 1px solid var(--border-color);
+    min-height: 0;
+}
+
+.terminal-box {
+    height: 220px;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+}
+
+.code-editor, .terminal-body {
+    background-color: #1a1b26;
+    border-radius: 6px;
+    padding: 12px;
+    margin-top: 10px;
+    flex: 1;
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 0.85rem;
+    overflow: auto;
+    color: #9aa5ce;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.text-muted {
+    color: #565f89;
+}
+===
+css/blocks.css
+.block {
+    display: inline-flex;
+    align-items: center;
+    padding: 8px 12px;
+    border-radius: 6px;
+    color: #ffffff;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: grab;
+    user-select: none;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    transition: transform 0.1s;
+    width: fit-content;
+    max-width: 100%;
+}
+
+.block:hover {
+    transform: translateY(-1px);
+}
+
+.block:active {
+    cursor: grabbing;
+}
+
+.block input {
+    background-color: rgba(0, 0, 0, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    color: #ffffff;
+    padding: 2px 6px;
+    margin: 0 4px;
+    font-size: 0.85rem;
+    outline: none;
+    min-width: 60px;
+}
+
+.block input:focus {
+    border-color: #ffffff;
+    background-color: rgba(0, 0, 0, 0.4);
+}
+
+.block-ghost {
+    opacity: 0.4;
+    border: 2px dashed #ffffff !important;
+    pointer-events: none !important;
+}
+
+.block-print {
+    background-color: #9d7cd8;
+}
+
+.block-variables {
+    background-color: #ff9e64;
+}
+
+.block-logic {
+    background-color: #73daca;
+    color: #15161e;
+}
+===
+blocks/output/print/print.json
+{
+  "id": "print",
+  "title": "print",
+  "category": "output",
+  "cssClass": "block-print",
+  "template": {
+    "display": "print({input:text_val})",
+    "inputs": [
+      {
+        "key": "text_val",
+        "type": "text",
+        "default": "\"Hello, World!\"",
+        "placeholder": "value or variable..."
+      }
+    ]
+  },
+  "codeMapping": {
+    "python": "print({input:text_val})"
+  }
+}
+===
+blocks/variables/var_assign/var_assign.json
+{
+  "id": "var_assign",
+  "title": "Set Variable",
+  "category": "variables",
+  "cssClass": "block-variables",
+  "template": {
+    "display": "set {input:var_name} = {input:var_val}",
+    "inputs": [
+      {
+        "key": "var_name",
+        "type": "text",
+        "default": "x",
+        "placeholder": "variable..."
+      },
+      {
+        "key": "var_val",
+        "type": "text",
+        "default": "10",
+        "placeholder": "value..."
+      }
+    ]
+  },
+  "codeMapping": {
+    "python": "{input:var_name} = {input:var_val}"
+  }
+}
+===
+blocks/logic/if_condition/if_condition.json
+{
+  "id": "if_condition",
+  "title": "If Condition",
+  "category": "logic",
+  "cssClass": "block-logic",
+  "template": {
+    "display": "if {input:cond}:",
+    "inputs": [
+      {
+        "key": "cond",
+        "type": "text",
+        "default": "True",
+        "placeholder": "condition..."
+      }
+    ]
+  },
+  "codeMapping": {
+    "python": "if {input:cond}:"
+  }
+}
+===
+js/block-factory.js
+window.BlockFactory = {
+    blocks: [],
+    activeCategory: 'output',
+
+    blockPaths: [
+        'blocks/output/print/print.json',
+        'blocks/variables/var_assign/var_assign.json',
+        'blocks/logic/if_condition/if_condition.json'
+    ],
+
+    async initPalette() {
+        this.bindCategoryButtons();
+        await this.loadAllBlockConfigs();
+        this.renderCategory(this.activeCategory);
+    },
+
+    async loadAllBlockConfigs() {
+        this.blocks = [];
+        for (const path of this.blockPaths) {
+            try {
+                const res = await fetch(path);
+                const config = await res.json();
+                this.blocks.push(config);
+            } catch (err) {
+                console.warn(`Could not load block config from ${path}:`, err);
+            }
+        }
+    },
+
+    bindCategoryButtons() {
+        const buttons = document.querySelectorAll('.category-btn');
+        buttons.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const targetBtn = e.currentTarget;
+                const category = targetBtn.getAttribute('data-category');
+
+                buttons.forEach(b => b.classList.remove('active'));
+                targetBtn.classList.add('active');
+
+                this.renderCategory(category);
+            });
+        });
+    },
+
+    createBlockElement(config, currentValues = {}) {
+        const el = document.createElement('div');
+        el.className = `block ${config.cssClass || 'block-print'}`;
+        el.setAttribute('draggable', 'true');
+        el.dataset.id = config.id;
+
+        let templateHtml = config.template ? config.template.display : config.id;
+
+        if (config.template && config.template.inputs) {
+            config.template.inputs.forEach(input => {
+                const val = currentValues[input.key] !== undefined ? currentValues[input.key] : input.default;
+                const inputElement = `<input type="${input.type}" data-key="${input.key}" value='${val}' placeholder="${input.placeholder || ''}" />`;
+                templateHtml = templateHtml.replace(`{input:${input.key}}`, inputElement);
+            });
+        }
+
+        el.innerHTML = templateHtml;
+
+        el.querySelectorAll('input').forEach(input => {
+            input.addEventListener('mousedown', (e) => e.stopPropagation());
+            input.addEventListener('input', () => {
+                if (window.PythonEngine) window.PythonEngine.updatePreview();
+            });
+        });
+
+        return el;
+    },
+
+    appendBlockToWorkspace(config) {
+        const workspace = document.getElementById('workspace');
+        if (!workspace) return;
+
+        const placeholder = workspace.querySelector('.placeholder');
+        if (placeholder) placeholder.remove();
+
+        const newBlock = this.createBlockElement(config);
+        
+        if (window.bindBlockDragEvents) {
+            window.bindBlockDragEvents(newBlock, 'workspace');
+        }
+
+        workspace.appendChild(newBlock);
+
+        if (window.PythonEngine) window.PythonEngine.updatePreview();
+    },
+
+    renderCategory(group) {
+        this.activeCategory = group;
+        const drawerContent = document.getElementById('drawer-content');
+        const drawerTitle = document.getElementById('drawer-title');
+
+        if (!drawerContent || !drawerTitle) return;
+
+        drawerTitle.innerText = `${group.charAt(0).toUpperCase() + group.slice(1)} Blocks`;
+        drawerContent.innerHTML = '';
+
+        const matchingBlocks = this.blocks.filter(b => b.category === group);
+
+        matchingBlocks.forEach(config => {
+            const el = this.createBlockElement(config);
+            
+            if (window.bindBlockDragEvents) {
+                window.bindBlockDragEvents(el, 'drawer');
+            }
+
+            drawerContent.appendChild(el);
+        });
+    }
+};
+===
+js/drag-drop.js
+function initDragAndDrop() {
+    const workspace = document.getElementById('workspace');
+    const drawerContent = document.getElementById('drawer-content');
+    let ghostBlock = null;
+    let currentDraggedBlock = null;
+    let sourceContainer = null;
+    let lastAfterElement = undefined;
+
+    function getDragAfterElement(container, y) {
+        const draggableElements = [...container.querySelectorAll('.block:not(.block-ghost)')];
+
+        return draggableElements.reduce((closest, child) => {
+            const box = child.getBoundingClientRect();
+            const offset = y - box.top - box.height / 2;
+
+            if (offset < 0 && offset > closest.offset) {
+                return { offset: offset, element: child };
+            } else {
+                return closest;
+            }
+        }, { offset: Number.NEGATIVE_INFINITY }).element;
+    }
+
+    function bindBlockDragEvents(block, origin) {
+        block.setAttribute('draggable', 'true');
+
+        let startX = 0;
+        let startY = 0;
+        let startTime = 0;
+
+        block.addEventListener('mousedown', (e) => {
+            startX = e.clientX;
+            startY = e.clientY;
+            startTime = Date.now();
+        });
+
+        // Fixed click handler for adding block directly from drawer
+        block.addEventListener('click', (e) => {
+            if (e.target.tagName.toLowerCase() === 'input') return;
+            
+            const isDrawerBlock = block.closest('#drawer-content') !== null;
+            if (!isDrawerBlock && origin !== 'drawer') return;
+
+            const deltaX = Math.abs(e.clientX - startX);
+            const deltaY = Math.abs(e.clientY - startY);
+            const duration = Date.now() - startTime;
+
+            if (deltaX < 5 && deltaY < 5 && duration < 300) {
+                const blockId = block.dataset.id;
+                const config = window.BlockFactory ? window.BlockFactory.blocks.find(b => b.id === blockId) : null;
+                if (config) {
+                    window.BlockFactory.appendBlockToWorkspace(config);
+                }
+            }
+        });
+
+        block.addEventListener('dragstart', (e) => {
+            currentDraggedBlock = block;
+            sourceContainer = origin;
+
+            const blockId = block.dataset.id;
+            const inputValues = {};
+            
+            block.querySelectorAll('input').forEach(input => {
+                inputValues[input.dataset.key] = input.value;
+            });
+
+            e.dataTransfer.setData('text/plain', JSON.stringify({
+                id: blockId,
+                values: inputValues,
+                origin: origin
+            }));
+
+            if (origin === 'workspace') {
+                setTimeout(() => block.style.opacity = '0.3', 0);
+            }
+        });
+
+        block.addEventListener('dragend', () => {
+            if (currentDraggedBlock) {
+                currentDraggedBlock.style.opacity = '1';
+            }
+            currentDraggedBlock = null;
+            sourceContainer = null;
+            lastAfterElement = undefined;
+
+            if (ghostBlock) {
+                ghostBlock.remove();
+                ghostBlock = null;
+            }
+        });
+    }
+
+    if (drawerContent && !drawerContent.dataset.dragAttached) {
+        drawerContent.dataset.dragAttached = 'true';
+
+        drawerContent.addEventListener('dragover', (e) => {
+            if (sourceContainer === 'workspace') {
+                e.preventDefault();
+            }
+        });
+
+        drawerContent.addEventListener('drop', (e) => {
+            e.preventDefault();
+            const rawData = e.dataTransfer.getData('text/plain');
+            if (!rawData) return;
+
+            const data = JSON.parse(rawData);
+
+            if (data.origin === 'workspace' && currentDraggedBlock) {
+                currentDraggedBlock.remove();
+                
+                if (workspace.querySelectorAll('.block').length === 0) {
+                    workspace.innerHTML = '<p class="placeholder">Drag blocks here to build code...</p>';
+                }
+
+                if (window.PythonEngine) window.PythonEngine.updatePreview();
+            }
+        });
+    }
+
+    if (workspace && !workspace.dataset.listenersAttached) {
+        workspace.dataset.listenersAttached = 'true';
+
+        workspace.addEventListener('dragover', (e) => {
+            e.preventDefault();
+
+            if (!ghostBlock && (currentDraggedBlock || e.dataTransfer.types.includes('text/plain'))) {
+                if (currentDraggedBlock) {
+                    ghostBlock = currentDraggedBlock.cloneNode(true);
+                    const originalInputs = currentDraggedBlock.querySelectorAll('input');
+                    const ghostInputs = ghostBlock.querySelectorAll('input');
+                    originalInputs.forEach((inp, idx) => {
+                        if (ghostInputs[idx]) ghostInputs[idx].value = inp.value;
+                    });
+                } else {
+                    ghostBlock = document.createElement('div');
+                    ghostBlock.className = 'block block-print';
+                    ghostBlock.innerText = 'Drop here...';
+                }
+                ghostBlock.classList.add('block-ghost');
+            }
+
+            if (ghostBlock) {
+                const afterElement = getDragAfterElement(workspace, e.clientY);
+
+                if (afterElement !== lastAfterElement) {
+                    lastAfterElement = afterElement;
+                    if (afterElement == null) {
+                        workspace.appendChild(ghostBlock);
+                    } else {
+                        workspace.insertBefore(ghostBlock, afterElement);
+                    }
+                }
+            }
+        });
+
+        workspace.addEventListener('dragleave', (e) => {
+            if (e.target === workspace && ghostBlock && ghostBlock.parentNode) {
+                const rect = workspace.getBoundingClientRect();
+                if (e.clientX < rect.left || e.clientX > rect.right || e.clientY < rect.top || e.clientY > rect.bottom) {
+                    ghostBlock.remove();
+                    ghostBlock = null;
+                    lastAfterElement = undefined;
+                }
+            }
+        });
+
+        workspace.addEventListener('drop', (e) => {
+            e.preventDefault();
+            const rawData = e.dataTransfer.getData('text/plain');
+            if (!rawData) return;
+
+            let blockData = JSON.parse(rawData);
+            const placeholder = workspace.querySelector('.placeholder');
+            if (placeholder) placeholder.remove();
+
+            const targetPosition = lastAfterElement;
+
+            if (blockData.origin === 'workspace' && currentDraggedBlock) {
+                if (targetPosition) {
+                    workspace.insertBefore(currentDraggedBlock, targetPosition);
+                } else {
+                    workspace.appendChild(currentDraggedBlock);
+                }
+            } else {
+                const config = window.BlockFactory.blocks.find(b => b.id === blockData.id);
+                if (config) {
+                    const newBlock = window.BlockFactory.createBlockElement(config, blockData.values);
+                    
+                    bindBlockDragEvents(newBlock, 'workspace');
+
+                    if (targetPosition) {
+                        workspace.insertBefore(newBlock, targetPosition);
+                    } else {
+                        workspace.appendChild(newBlock);
+                    }
+                }
+            }
+
+            if (ghostBlock) {
+                ghostBlock.remove();
+                ghostBlock = null;
+            }
+            lastAfterElement = undefined;
+
+            if (window.PythonEngine) window.PythonEngine.updatePreview();
+        });
+    }
+
+    window.bindBlockDragEvents = bindBlockDragEvents;
+}
+===
+js/python-engine.js
+window.PythonEngine = {
+    async init() {
+        this.bindButtons();
+        this.updatePreview();
+    },
+
+    bindButtons() {
+        const runBtn = document.getElementById('run-btn');
+        const exportBtn = document.getElementById('export-btn');
+
+        if (runBtn) {
+            runBtn.addEventListener('click', () => this.runCode());
+        }
+
+        if (exportBtn) {
+            exportBtn.addEventListener('click', () => this.exportCode());
+        }
+    },
+
+    generatePythonCode() {
+        const workspace = document.getElementById('workspace');
+        if (!workspace) return '# No workspace found';
+
+        const blocks = workspace.querySelectorAll('.block:not(.block-ghost)');
+        if (blocks.length === 0) {
+            return '# No blocks in workspace';
+        }
+
+        let codeLines = [];
+
+        blocks.forEach(block => {
+            const blockId = block.dataset.id;
+            const config = window.BlockFactory ? window.BlockFactory.blocks.find(b => b.id === blockId) : null;
+
+            if (config && config.codeMapping && config.codeMapping.python) {
+                let line = config.codeMapping.python;
+                
+                block.querySelectorAll('input').forEach(input => {
+                    const key = input.dataset.key;
+                    const val = input.value;
+                    line = line.replace(`{input:${key}}`, val);
+                });
+
+                codeLines.push(line);
+            } else {
+                if (blockId === 'print') {
+                    const input = block.querySelector('input');
+                    const val = input ? input.value : '';
+                    codeLines.push(`print(${val})`);
+                } else {
+                    codeLines.push(`# ${blockId} block execution`);
+                }
+            }
+        });
+
+        return codeLines.join('\n');
+    },
+
+    updatePreview() {
+        const previewEl = document.getElementById('python-preview');
+        const code = this.generatePythonCode();
+
+        if (previewEl) {
+            previewEl.textContent = `# Generated by PyBlocks Studio\n\n${code}`;
+        }
+    },
+
+    async runCode() {
+        const consoleOutput = document.getElementById('console-output');
+        const code = this.generatePythonCode();
+
+        if (!consoleOutput) return;
+
+        consoleOutput.innerHTML = `<p class="console-line">&gt; Executing Python script...</p>`;
+
+        try {
+            let outputBuffer = [];
+            let scopeVars = {};
+
+            const lines = code.split('\n');
+            lines.forEach(line => {
+                line = line.trim();
+                if (!line || line.startsWith('#')) return;
+
+                // Handle Variable Assignments: x = 10 or x = "hello"
+                if (line.includes('=')) {
+                    const parts = line.split('=');
+                    const varName = parts[0].trim();
+                    let varVal = parts[1].trim();
+
+                    try {
+                        scopeVars[varName] = eval(varVal);
+                    } catch (e) {
+                        scopeVars[varName] = varVal;
+                    }
+                } 
+                // Handle Print Calls: print(...)
+                else if (line.startsWith('print(') && line.endsWith(')')) {
+                    const inner = line.slice(6, -1).trim();
+                    
+                    if ((inner.startsWith('"') && inner.endsWith('"')) || (inner.startsWith("'") && inner.endsWith("'"))) {
+                        outputBuffer.push(inner.slice(1, -1));
+                    } else if (scopeVars.hasOwnProperty(inner)) {
+                        outputBuffer.push(scopeVars[inner]);
+                    } else if (!isNaN(inner) && inner !== '') {
+                        outputBuffer.push(Number(inner));
+                    } else {
+                        outputBuffer.push(inner);
+                    }
+                }
+            });
+
+            if (outputBuffer.length > 0) {
+                outputBuffer.forEach(line => {
+                    consoleOutput.innerHTML += `<p class="console-line">&gt; [STDOUT]: ${line}</p>`;
+                });
+            } else {
+                consoleOutput.innerHTML += `<p class="console-line text-muted">&gt; (Script executed with no output)</p>`;
+            }
+
+            consoleOutput.innerHTML += `<p class="console-line">&gt; Process finished with code 0</p>`;
+        } catch (err) {
+            consoleOutput.innerHTML += `<p class="console-line text-danger">&gt; [STDERR]: Execution error: ${err.message}</p>`;
+        }
+    },
+
+    exportCode() {
+        const code = this.generatePythonCode();
+        const blob = new Blob([code], { type: 'text/plain;charset=utf-8' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'script.py';
+        a.click();
+    }
+};
+===
+js/main.js
+document.addEventListener('DOMContentLoaded', async () => {
+    console.log('PyBlocks Studio v0.2.3 initializing...');
+
+    if (window.BlockFactory) {
+        await window.BlockFactory.initPalette();
+    }
+
+    if (typeof initDragAndDrop === 'function') {
+        initDragAndDrop();
+    }
+
+    if (window.PythonEngine) {
+        window.PythonEngine.init();
+    }
+});

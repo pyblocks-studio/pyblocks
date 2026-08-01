@@ -1,0 +1,41 @@
+.settings-gear-btn {
+    width: 40px; height: 38px; padding: 0; border: 1px solid #3b4261;
+    border-radius: 2px; background: #24283b; color: #c0caf5; cursor: pointer;
+    display: inline-grid; place-items: center; font-size: 1.05rem;
+}
+.settings-gear-btn:hover, .settings-gear-btn[aria-expanded="true"] { border-color:#7aa2f7; background:#303650; }
+.settings-backdrop {
+    position:fixed; z-index:100; inset:0; padding:20px; background:rgb(5 7 12 / 70%);
+    display:grid; place-items:center;
+}
+.settings-backdrop[hidden] { display:none; }
+.settings-panel {
+    width:min(520px,100%); border:1px solid #343a55; border-radius:3px;
+    background:#1a1d2d; color:#c0caf5; box-shadow:0 24px 70px rgb(0 0 0 / 55%);
+}
+.settings-header { padding:20px; border-bottom:1px solid #292e42; display:flex; justify-content:space-between; align-items:flex-start; gap:20px; }
+.settings-header h2 { margin:0 0 5px; font-size:1.1rem; }.settings-header p { margin:0; color:#7982aa; font-size:.83rem; }
+.settings-close { border:0; background:transparent; color:#a9b1d6; cursor:pointer; font-size:1.7rem; line-height:1; }
+.settings-options { padding:10px 20px; }
+.setting-row { min-height:64px; border-bottom:1px solid #292e42; display:flex; justify-content:space-between; align-items:center; gap:20px; }
+.setting-copy strong { display:block; font-size:.9rem; }.setting-copy small { color:#7982aa; }
+.setting-row select, .setting-switch {
+    border:1px solid #414868; border-radius:2px; background:#16161e; color:#c0caf5; padding:8px 10px;
+}
+.setting-switch { width:44px; height:24px; padding:2px; cursor:pointer; }
+.setting-switch::after { content:""; display:block; width:18px; height:18px; background:#737aa2; transition:transform 120ms; }
+.setting-switch[aria-checked="true"]::after { transform:translateX(18px); background:#9ece6a; }
+.settings-footer { padding:14px 20px 20px; color:#565f89; font-size:.75rem; }
+html[data-theme="light"] .settings-panel { background:#fff; color:#28304a; border-color:#cbd2e4; }
+html[data-theme="light"] .settings-header, html[data-theme="light"] .setting-row { border-color:#dce1ed; }
+html[data-theme="light"] .setting-row select, html[data-theme="light"] .setting-switch { background:#eef1f8; color:#28304a; border-color:#cbd2e4; }
+html[data-theme="light"] .settings-gear-btn { background:#e9edf7; color:#28304a; border-color:#cbd2e4; }
+
+/* Editor light theme */
+html[data-theme="light"] body:not(.marketing-page) {
+    --bg-dark:#eef1f8; --bg-card:#fff; --bg-panel:#f7f8fc; --bg-editor:#fff;
+    --bg-hover:#e5e9f3; --text-main:#4b5574; --text-bright:#252d46;
+    --text-muted:#747e9c; --border-color:#ccd3e3;
+}
+html[data-theme="light"] body:not(.marketing-page) .blocklyMainBackground { fill:#eef1f8!important; }
+html[data-theme="light"] body:not(.marketing-page) .blocklyToolboxDiv { background:#fff!important; }

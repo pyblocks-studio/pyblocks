@@ -1,0 +1,6 @@
+Optional homepage hero backgrounds:
+- Dark navy technical grid with very subtle blue and green glows
+- No readable text, logos, people, or photographic objects
+- Desktop landscape: 1920x1080 WebP
+- Mobile portrait: 1080x1600 WebP
+- Keep the left third quiet for the PyBlocks headline

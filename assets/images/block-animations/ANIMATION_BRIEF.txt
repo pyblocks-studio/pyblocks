@@ -1,0 +1,7 @@
+Create transparent PNG or WebP block pieces for homepage motion:
+- Event hat: gold, text "when Run Python clicked"
+- Variable block: orange, text `message = "Hello, Python!"`
+- Output block: purple, text `print(message)`
+- Logic block: cyan, text `if ready:`
+Export each block separately at 2x resolution with no background.
+Keep geometry angular and compatible with classic Blockly connection shapes.
