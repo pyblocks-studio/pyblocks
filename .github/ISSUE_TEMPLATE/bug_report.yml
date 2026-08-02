@@ -1,0 +1,14 @@
+name: Bug report
+description: Report incorrect generation, runtime behavior, data loss, or interface problems.
+title: "[Bug]: "
+body:
+  - type: textarea
+    attributes: { label: What happened? }
+    validations: { required: true }
+  - type: textarea
+    attributes: { label: Steps to reproduce }
+    validations: { required: true }
+  - type: textarea
+    attributes: { label: Generated Python and relevant project details }
+  - type: input
+    attributes: { label: Browser and device }
