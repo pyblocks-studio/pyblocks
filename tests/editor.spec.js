@@ -69,7 +69,7 @@ test("Python import is absent and cloud projects compress losslessly", async ({
     const cloudDialog = page.getByRole("dialog", { name: "PyBlocks Cloud" });
     await expect(cloudDialog).toBeVisible();
     await expect(cloudDialog.getByRole("status")).toContainText(
-        "Cloud setup is required",
+        "Sign in or create an account.",
     );
 });
 
