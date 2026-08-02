@@ -1,23 +1,42 @@
 module.exports = [
     {
-        files: ['js/**/*.js', 'tests/**/*.js'],
+        files: ["js/**/*.js", "tests/**/*.js"],
         languageOptions: {
             ecmaVersion: 2022,
-            sourceType: 'script',
+            sourceType: "script",
             globals: {
-                window: 'readonly', document: 'readonly', localStorage: 'readonly', matchMedia: 'readonly',
-                Blockly: 'readonly', Worker: 'readonly', Blob: 'readonly', URL: 'readonly', CustomEvent: 'readonly',
-                ResizeObserver: 'readonly', self: 'readonly', importScripts: 'readonly', module: 'readonly', globalThis: 'readonly',
-                setTimeout: 'readonly', clearTimeout: 'readonly', console: 'readonly', require: 'readonly'
-            }
+                window: "readonly",
+                document: "readonly",
+                localStorage: "readonly",
+                matchMedia: "readonly",
+                Blockly: "readonly",
+                Worker: "readonly",
+                Blob: "readonly",
+                File: "readonly",
+                URL: "readonly",
+                navigator: "readonly",
+                CustomEvent: "readonly",
+                ResizeObserver: "readonly",
+                self: "readonly",
+                importScripts: "readonly",
+                module: "readonly",
+                globalThis: "readonly",
+                setTimeout: "readonly",
+                clearTimeout: "readonly",
+                console: "readonly",
+                require: "readonly",
+                global: "readonly",
+                __dirname: "readonly",
+                Buffer: "readonly",
+            },
         },
         rules: {
-            'no-eval': 'error',
-            'no-implied-eval': 'error',
-            'no-new-func': 'error',
-            'no-undef': 'error',
-            'no-unused-vars': ['error', {argsIgnorePattern: '^_'}]
-        }
+            "no-eval": "error",
+            "no-implied-eval": "error",
+            "no-new-func": "error",
+            "no-undef": "error",
+            "no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
+        },
     },
-    {ignores: ['vendor/**', 'node_modules/**']}
+    { ignores: ["vendor/**", "node_modules/**"] },
 ];

@@ -1,2 +1,7 @@
 vendor/
 node_modules/
+update/
+update.bat
+LICENSE.md
+test-results/
+playwright-report/

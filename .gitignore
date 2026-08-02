@@ -22,6 +22,9 @@ report.*.json
 coverage/
 .nyc_output/
 *.lcov
+test-results/
+playwright-report/
+blob-report/
 
 # Generated build output and tool caches
 dist/

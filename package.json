@@ -4,12 +4,21 @@
   "private": true,
   "scripts": {
     "test": "node --test",
+    "test:browser": "playwright test",
+    "serve": "http-server -p 4173 -c-1",
     "lint": "eslint js tests",
     "format:check": "prettier --check \"**/*.{html,css,js,json,md}\"",
-    "check": "npm run test && npm run lint"
+    "check": "npm run test && npm run lint && npm run format:check && npm run test:browser"
   },
   "devDependencies": {
+    "@axe-core/playwright": "4.10.2",
+    "@playwright/test": "1.62.1",
     "eslint": "9.32.0",
+    "http-server": "14.1.1",
     "prettier": "3.6.2"
+  },
+  "dependencies": {
+    "blockly": "13.2.0",
+    "skulpt": "1.2.0"
   }
 }
