@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta
             http-equiv="Content-Security-Policy"
-            content="default-src 'self'; script-src 'self'; worker-src 'self' blob:; connect-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; media-src 'self'; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'"
+            content="default-src 'self'; script-src 'self'; worker-src 'self' blob:; connect-src 'self' https://*.supabase.co; style-src 'self' 'unsafe-inline'; img-src 'self' data:; media-src 'self'; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'"
         />
         <meta name="referrer" content="no-referrer" />
         <title>PyBlocks Studio</title>
@@ -37,6 +37,15 @@
                     aria-controls="libraries-dialog"
                 >
                     Libraries
+                </button>
+                <button
+                    id="account-btn"
+                    class="btn btn-secondary account-btn"
+                    type="button"
+                    aria-haspopup="dialog"
+                    aria-controls="cloud-dialog"
+                >
+                    Sign in
                 </button>
                 <div class="menu-container">
                     <button
@@ -77,9 +86,6 @@
                             Save Project…
                         </button>
                         <div class="menu-separator" role="separator"></div>
-                        <button id="import-btn" type="button" role="menuitem">
-                            Import Python to Blocks…
-                        </button>
                         <button id="export-btn" type="button" role="menuitem">
                             Export Python…
                         </button>
@@ -93,12 +99,6 @@
                             Clear Workspace
                         </button>
                     </div>
-                    <input
-                        id="import-file-input"
-                        type="file"
-                        accept=".py,text/x-python,text/plain"
-                        hidden
-                    />
                     <input
                         id="project-file-input"
                         type="file"
@@ -219,6 +219,108 @@
             </section>
         </div>
 
+        <div
+            id="cloud-dialog"
+            class="dialog-backdrop"
+            aria-hidden="true"
+            hidden
+        >
+            <section
+                class="libraries-dialog cloud-dialog"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="cloud-title"
+            >
+                <div class="dialog-header">
+                    <div>
+                        <h2 id="cloud-title">PyBlocks Cloud</h2>
+                        <p id="cloud-user-label">Not signed in</p>
+                    </div>
+                    <button
+                        id="cloud-close-btn"
+                        class="dialog-close-btn"
+                        type="button"
+                        aria-label="Close cloud projects"
+                    >
+                        ×
+                    </button>
+                </div>
+                <div id="cloud-auth-view" class="cloud-content">
+                    <form id="cloud-auth-form" class="cloud-auth-form">
+                        <label>
+                            Action
+                            <select id="auth-mode" name="mode">
+                                <option value="signin">Sign in</option>
+                                <option value="signup">Create account</option>
+                            </select>
+                        </label>
+                        <label id="username-field" hidden>
+                            Username
+                            <input
+                                name="username"
+                                minlength="3"
+                                maxlength="32"
+                                autocomplete="username"
+                            />
+                        </label>
+                        <label>
+                            Email
+                            <input
+                                name="email"
+                                type="email"
+                                autocomplete="email"
+                                required
+                            />
+                        </label>
+                        <label>
+                            Password
+                            <input
+                                name="password"
+                                type="password"
+                                minlength="8"
+                                autocomplete="current-password"
+                                required
+                            />
+                        </label>
+                        <p class="cloud-privacy-note">
+                            Passwords are handled by Supabase Auth and are never
+                            stored inside PyBlocks projects.
+                        </p>
+                        <button class="btn btn-primary" type="submit">
+                            Continue
+                        </button>
+                    </form>
+                </div>
+                <div id="cloud-projects-view" class="cloud-content" hidden>
+                    <div class="cloud-toolbar">
+                        <button
+                            id="cloud-save-btn"
+                            class="btn btn-primary"
+                            type="button"
+                        >
+                            Save Current Project
+                        </button>
+                        <button
+                            id="cloud-signout-btn"
+                            class="btn btn-secondary"
+                            type="button"
+                        >
+                            Sign out
+                        </button>
+                    </div>
+                    <div
+                        id="cloud-project-list"
+                        class="cloud-project-list"
+                    ></div>
+                </div>
+                <div class="dialog-footer">
+                    <span id="cloud-status" role="status" aria-live="polite"
+                        >Cloud is ready.</span
+                    >
+                </div>
+            </section>
+        </div>
+
         <xml id="toolbox" style="display: none">
             <category name="Events" colour="#e0af68"
                 ><block type="py_when_run"></block
@@ -295,8 +397,10 @@
         <script src="js/dialog-controller.js"></script>
         <script src="js/export-service.js"></script>
         <script src="js/console-view.js"></script>
-        <script src="js/python-importer.js"></script>
+        <script src="js/cloud-config.js"></script>
+        <script src="js/cloud-service.js"></script>
         <script src="js/python-engine.js"></script>
+        <script src="js/cloud-controller.js"></script>
         <script src="js/main.js"></script>
         <script src="js/theme-settings.js"></script>
     </body>

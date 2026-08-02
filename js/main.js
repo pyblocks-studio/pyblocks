@@ -134,6 +134,7 @@ document.addEventListener("DOMContentLoaded", () => {
         initProjectMenu(workspace);
         registerFunctionCategory(workspace);
         initLibrariesDialog(workspace);
+        window.PyBlocksCloudController.init(workspace);
         window.PythonEngine.restoreAutosave();
 
         const updateCode = (event) => {
@@ -220,8 +221,6 @@ async function configureWorkspaceAudio(workspace) {
 function initProjectMenu(workspace) {
     const menuButton = document.getElementById("menu-btn");
     const menu = document.getElementById("project-menu");
-    const importButton = document.getElementById("import-btn");
-    const importInput = document.getElementById("import-file-input");
     const projectInput = document.getElementById("project-file-input");
     const confirmReplacement = (action) =>
         !window.PythonEngine.dirty ||
@@ -262,28 +261,6 @@ function initProjectMenu(workspace) {
                         items.length) %
                     items.length;
         items[next]?.focus();
-    });
-
-    importButton.addEventListener("click", () => {
-        setMenuOpen(false);
-        importInput.click();
-    });
-
-    importInput.addEventListener("change", async () => {
-        const file = importInput.files?.[0];
-        importInput.value = "";
-        if (!file) return;
-
-        if (!confirmReplacement("Importing Python")) return;
-
-        try {
-            const code = await file.text();
-            await window.PythonEngine.importPython(code);
-        } catch (error) {
-            window.PythonEngine.showError(
-                `Could not import ${file.name}: ${error.message}`,
-            );
-        }
     });
 
     document.getElementById("export-btn").addEventListener("click", () => {

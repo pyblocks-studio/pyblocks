@@ -1,6 +1,22 @@
 const { test, expect } = require("@playwright/test");
 const AxeBuilder = require("@axe-core/playwright").default;
 
+async function setRawTestProgram(page, source) {
+    await page.evaluate((code) => {
+        const workspace = window.PyBlocksWorkspace;
+        workspace.clear();
+        const event = workspace.newBlock("py_when_run");
+        event.initSvg();
+        event.render();
+        const raw = workspace.newBlock("py_raw_code");
+        raw.data = code;
+        raw.initSvg();
+        raw.render();
+        event.nextConnection.connect(raw.previousConnection);
+        window.PythonEngine.updatePreview();
+    }, source);
+}
+
 test("editor starts without page errors and essential actions remain visible", async ({
     page,
 }) => {
@@ -11,10 +27,50 @@ test("editor starts without page errors and essential actions remain visible", a
         page.getByRole("button", { name: "Run Python" }),
     ).toBeVisible();
     await expect(page.getByRole("button", { name: "Libraries" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Sign in" })).toBeVisible();
     await expect(
         page.getByRole("region", { name: "Block workspace" }),
     ).toBeVisible();
     expect(errors).toEqual([]);
+});
+
+test("Python import is absent and cloud projects compress losslessly", async ({
+    page,
+}, testInfo) => {
+    test.skip(
+        !testInfo.project.name.includes("chromium-desktop"),
+        "Cloud frontend behavior is engine-independent.",
+    );
+    await page.goto("/editor.html");
+    await page.getByRole("button", { name: "Open project menu" }).click();
+    await expect(
+        page.getByRole("menuitem", { name: "Import Python to Blocks…" }),
+    ).toHaveCount(0);
+    const roundTrip = await page.evaluate(async () => {
+        const source = JSON.stringify({
+            format: "pyblocks-project",
+            name: "Compression test 🐍",
+            blocks: Array.from({ length: 100 }, (_, index) => ({ index })),
+        });
+        const packed = await window.PyBlocksCloud.compress(source);
+        return {
+            matches:
+                (await window.PyBlocksCloud.decompress(
+                    packed.payload,
+                    packed.encoding,
+                )) === source,
+            encoding: packed.encoding,
+        };
+    });
+    expect(roundTrip.matches).toBe(true);
+    expect(["gzip-base64", "base64"]).toContain(roundTrip.encoding);
+
+    await page.getByRole("button", { name: "Sign in" }).click();
+    const cloudDialog = page.getByRole("dialog", { name: "PyBlocks Cloud" });
+    await expect(cloudDialog).toBeVisible();
+    await expect(cloudDialog.getByRole("status")).toContainText(
+        "Cloud setup is required",
+    );
 });
 
 test("runtime executes Python semantics, input, errors, concurrency, and termination", async ({
@@ -156,93 +212,6 @@ test("corrupt autosave is rejected without preventing startup", async ({
     ).toBeNull();
 });
 
-test("raw Python import is lossless and only event-connected code is generated", async ({
-    page,
-}, testInfo) => {
-    test.skip(
-        !testInfo.project.name.includes("chromium-desktop"),
-        "Generator behavior is engine-independent.",
-    );
-    await page.goto("/editor.html");
-    const source =
-        "# keep this comment\nfor item in [1, 2]:\n    print(item)\n";
-    await page.evaluate(
-        (code) => window.PythonEngine.importRawPython(code),
-        source,
-    );
-    expect(
-        await page.evaluate(() => window.PythonEngine.generatePythonCode()),
-    ).toContain(source.trimEnd());
-    await page.evaluate(() => {
-        const floating = window.PyBlocksWorkspace.newBlock("py_print");
-        floating.initSvg();
-        floating.render();
-    });
-    const generated = await page.evaluate(() =>
-        window.PythonEngine.generatePythonCode(),
-    );
-    expect((generated.match(/print\(/g) || []).length).toBe(1);
-});
-
-test("Python import creates visual blocks and marks unsupported syntax", async ({
-    page,
-}) => {
-    await page.goto("/editor.html");
-    const result = await page.evaluate(async () => {
-        const stats = await window.PythonEngine.importPython(
-            'name = input("Name?")\nprint(name)\nclass Unsupported:\n    pass\n',
-        );
-        return {
-            stats,
-            types: window.PythonEngine.workspace
-                .getAllBlocks(false)
-                .map((block) => block.type),
-            comments: window.PythonEngine.workspace
-                .getBlocksByType("py_comment", false)
-                .map((block) => block.getFieldValue("COMMENT")),
-        };
-    });
-    expect(result.types).toEqual(
-        expect.arrayContaining([
-            "py_when_run",
-            "py_assign",
-            "py_input",
-            "py_print",
-            "py_variable",
-            "py_comment",
-        ]),
-    );
-    expect(result.comments).toContain("Unknown Syntax");
-    expect(result.stats.converted).toBe(2);
-    expect(result.stats.unknown).toBe(1);
-
-    const rollback = await page.evaluate(async () => {
-        const before = JSON.stringify(
-            Blockly.serialization.workspaces.save(
-                window.PythonEngine.workspace,
-            ),
-        );
-        let message = "";
-        try {
-            await window.PythonEngine.importPython("if :\n    pass\n");
-        } catch (error) {
-            message = error.message;
-        }
-        return {
-            unchanged:
-                before ===
-                JSON.stringify(
-                    Blockly.serialization.workspaces.save(
-                        window.PythonEngine.workspace,
-                    ),
-                ),
-            message,
-        };
-    });
-    expect(rollback.unchanged).toBe(true);
-    expect(rollback.message).toContain("SyntaxError");
-});
-
 test("system theme and accessibility preferences apply live and survive reload", async ({
     page,
 }, testInfo) => {
@@ -287,9 +256,7 @@ test("editor presents Python errors with a generated source line", async ({
         "Runtime presentation is engine-independent.",
     );
     await page.goto("/editor.html");
-    await page.evaluate(() =>
-        window.PythonEngine.importRawPython("value = 1 / 0\nprint(value)"),
-    );
+    await setRawTestProgram(page, "value = 1 / 0\nprint(value)");
     await page.getByRole("button", { name: "Run Python" }).click();
     await expect(page.getByRole("log")).toContainText("ZeroDivisionError");
     await expect(page.getByRole("log")).toContainText("1 | value = 1 / 0");
@@ -306,9 +273,7 @@ test("Stop terminates an infinite program and resets run state", async ({
         "Runtime presentation is engine-independent.",
     );
     await page.goto("/editor.html");
-    await page.evaluate(() =>
-        window.PythonEngine.importRawPython("while True:\n    pass"),
-    );
+    await setRawTestProgram(page, "while True:\n    pass");
     await page.getByRole("button", { name: "Run Python" }).click();
     await expect(page.getByRole("button", { name: "Stop" })).toBeEnabled();
     await page.getByRole("button", { name: "Stop" }).click();

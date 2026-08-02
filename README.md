@@ -18,16 +18,17 @@ The tested browser feature set includes:
 
 Skulpt is a Python implementation for browsers, not CPython. Native extensions, sockets, subprocesses, unrestricted network access, and the desktop filesystem are unavailable. Library choices marked **Export only** generate valid desktop-Python imports but are not claimed to execute in the browser. A run is stopped after 10 seconds by default; the Stop button can interrupt it sooner.
 
-## Projects, import, and export
+## Projects and export
 
 - The editor autosaves a debounced, versioned snapshot in local browser storage and restores it at startup.
 - **Save Project** and **Open Project** use `.pyblocks` JSON files containing Blockly serialization, selected libraries, the project name, and execution settings.
 - Project files are size-limited and validated before loading. Malformed, unknown-version, unsafe, or invalid Blockly state is rejected without replacing the current workspace.
-- **Import Python to Blocks** parses Python with the bundled Python parser and converts supported syntax into editable visual blocks. Unsupported statements become gray comment blocks containing `Unknown Syntax`; invalid Python leaves the current workspace unchanged.
 - **Export Python** writes UTF-8 `.py` source with a final newline. Visual project export remains separate.
+- Python source cannot be reimported. Save a `.pyblocks` copy if you want to continue editing a visual project.
+- Signed-in users can save compressed `.pyblocks` projects to PyBlocks Cloud. Local `.pyblocks` saving and `.py` export work without an account.
 - Only statements connected below the single **when Run Python clicked** event are generated as executable event code. Function-definition hats are generated before that event stack; other floating blocks do nothing.
 
-Autosave is local to one browser profile. Save a `.pyblocks` file for backups or transfer between devices.
+Autosave is local to one browser profile. Save a `.pyblocks` file or use PyBlocks Cloud for backups and transfer between devices.
 
 ## Browser and device support
 
@@ -37,16 +38,17 @@ Touch dragging depends on Blockly and the device browser. On very small screens,
 
 ## Architecture
 
-| Area                  | Files                                                                | Responsibility                                                                |
-| --------------------- | -------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| Pages and styling     | `index.html`, `editor.html`, `license.html`, `css/`                  | Marketing, editor, licensing, responsive themes                               |
-| Blocks and generation | `js/blocks.js`                                                       | Block definitions, mutators, Python generators, identifier safety             |
-| Editor controller     | `js/main.js`                                                         | Blockly setup, toolbox, libraries, menus, resize/audio integration            |
-| Runtime and projects  | `js/python-engine.js`, `js/python-worker.js`, `js/project-format.js` | Code assembly, worker lifecycle, console, autosave, import/export, validation |
-| Shared UI             | `js/theme-settings.js`, `js/dialog-controller.js`                    | Preferences, live system theme, accessible modal behavior                     |
-| Third party           | `vendor/blockly/`, `vendor/skulpt/`                                  | Pinned browser dependencies and their license notices                         |
+| Area                  | Files                                                                | Responsibility                                                         |
+| --------------------- | -------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| Pages and styling     | `index.html`, `editor.html`, `license.html`, `css/`                  | Marketing, editor, licensing, responsive themes                        |
+| Blocks and generation | `js/blocks.js`                                                       | Block definitions, mutators, Python generators, identifier safety      |
+| Editor controller     | `js/main.js`                                                         | Blockly setup, toolbox, libraries, menus, resize/audio integration     |
+| Runtime and projects  | `js/python-engine.js`, `js/python-worker.js`, `js/project-format.js` | Code assembly, worker lifecycle, console, autosave, export, validation |
+| Accounts and cloud    | `js/cloud-service.js`, `js/cloud-controller.js`, `supabase/`         | Authentication, gzip project storage, per-user access policies         |
+| Shared UI             | `js/theme-settings.js`, `js/dialog-controller.js`                    | Preferences, live system theme, accessible modal behavior              |
+| Third party           | `vendor/blockly/`, `vendor/skulpt/`                                  | Pinned browser dependencies and their license notices                  |
 
-The application remains a static site: it has no backend, account, analytics, or cloud project storage.
+The editor remains a static frontend. Optional accounts and cloud project storage use Supabase; see `docs/CLOUD_SETUP.md`. PyBlocks has no analytics.
 
 ## Local development
 
