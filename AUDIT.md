@@ -1,7 +1,7 @@
 # PyBlocks Studio Repository Audit
 
-Audit date: 2026-08-01  
-Audited baseline: local `main` commit `e61d4b8`  
+Audit date: 2026-08-01
+Audited baseline: local `main` commit `e61d4b8`
 Working branch: `audit/repository-hardening`
 
 ## Scope and method

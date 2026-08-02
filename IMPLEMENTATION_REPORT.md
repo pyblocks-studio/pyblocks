@@ -1,7 +1,7 @@
 # Repository Hardening Implementation Report
 
-Date: 2026-08-01  
-Branch: `audit/repository-hardening`  
+Date: 2026-08-01
+Branch: `audit/repository-hardening`
 Audit source: `AUDIT.md`
 
 ## Completion summary
