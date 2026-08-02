@@ -1,136 +1,302 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PyBlocks Studio</title>
-    <link rel="icon" type="image/svg+xml" href="assets/images/brand-icons/favicon.svg">
-    <link rel="stylesheet" href="css/main.css">
-    <link rel="stylesheet" href="css/settings.css">
-</head>
-<body>
-    <header class="navbar">
-        <a class="editor-brand home-link" href="index.html">
-            <span class="editor-brand-mark">Py</span>
-            <span class="editor-brand-name">PyBlocks</span>
-            <span class="version">v0.5.2</span>
-        </a>
-        <div class="actions">
-            <button id="libraries-btn" class="btn btn-secondary" type="button" aria-haspopup="dialog">Libraries</button>
-            <div class="menu-container">
-                <button id="menu-btn" class="menu-btn" type="button" aria-label="Open project menu" aria-expanded="false" aria-controls="project-menu">
-                    <span></span><span></span><span></span>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta
+            http-equiv="Content-Security-Policy"
+            content="default-src 'self'; script-src 'self'; worker-src 'self' blob:; connect-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; media-src 'self'; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'"
+        />
+        <meta name="referrer" content="no-referrer" />
+        <title>PyBlocks Studio</title>
+        <link
+            rel="icon"
+            type="image/svg+xml"
+            href="assets/images/brand-icons/favicon.svg"
+        />
+        <link rel="stylesheet" href="css/main.css" />
+        <link rel="stylesheet" href="css/settings.css" />
+    </head>
+    <body>
+        <header class="navbar">
+            <a class="editor-brand home-link" href="index.html">
+                <span class="editor-brand-mark">Py</span>
+                <span class="editor-brand-name">PyBlocks</span>
+                <span class="version">v0.5.2</span>
+                <span id="save-status" class="save-status" role="status"
+                    >New project</span
+                >
+            </a>
+            <div class="actions">
+                <button
+                    id="libraries-btn"
+                    class="btn btn-secondary"
+                    type="button"
+                    aria-haspopup="dialog"
+                    aria-expanded="false"
+                    aria-controls="libraries-dialog"
+                >
+                    Libraries
                 </button>
-                <div id="project-menu" class="project-menu" role="menu" hidden>
-                    <button id="new-project-btn" type="button" role="menuitem">New Project</button>
-                    <button id="open-project-btn" type="button" role="menuitem">Open Project…</button>
-                    <button id="save-project-btn" type="button" role="menuitem">Save Project…</button>
-                    <div class="menu-separator" role="separator"></div>
-                    <button id="import-btn" type="button" role="menuitem">Import Python as Raw Code…</button>
-                    <button id="export-btn" type="button" role="menuitem">Export Python…</button>
-                    <div class="menu-separator" role="separator"></div>
-                    <button id="clear-btn" class="danger-action" type="button" role="menuitem">Clear Workspace</button>
+                <div class="menu-container">
+                    <button
+                        id="menu-btn"
+                        class="menu-btn"
+                        type="button"
+                        aria-label="Open project menu"
+                        aria-expanded="false"
+                        aria-controls="project-menu"
+                    >
+                        <span></span><span></span><span></span>
+                    </button>
+                    <div
+                        id="project-menu"
+                        class="project-menu"
+                        role="menu"
+                        hidden
+                    >
+                        <button
+                            id="new-project-btn"
+                            type="button"
+                            role="menuitem"
+                        >
+                            New Project
+                        </button>
+                        <button
+                            id="open-project-btn"
+                            type="button"
+                            role="menuitem"
+                        >
+                            Open Project…
+                        </button>
+                        <button
+                            id="save-project-btn"
+                            type="button"
+                            role="menuitem"
+                        >
+                            Save Project…
+                        </button>
+                        <div class="menu-separator" role="separator"></div>
+                        <button id="import-btn" type="button" role="menuitem">
+                            Import Python as Raw Code…
+                        </button>
+                        <button id="export-btn" type="button" role="menuitem">
+                            Export Python…
+                        </button>
+                        <div class="menu-separator" role="separator"></div>
+                        <button
+                            id="clear-btn"
+                            class="danger-action"
+                            type="button"
+                            role="menuitem"
+                        >
+                            Clear Workspace
+                        </button>
+                    </div>
+                    <input
+                        id="import-file-input"
+                        type="file"
+                        accept=".py,text/x-python,text/plain"
+                        hidden
+                    />
+                    <input
+                        id="project-file-input"
+                        type="file"
+                        accept=".pyblocks,application/json"
+                        hidden
+                    />
                 </div>
-                <input id="import-file-input" type="file" accept=".py,text/x-python,text/plain" hidden>
-                <input id="project-file-input" type="file" accept=".pyblocks,application/json" hidden>
+                <button
+                    class="settings-gear-btn"
+                    type="button"
+                    data-settings-button
+                    aria-label="Open settings"
+                >
+                    ⚙
+                </button>
+                <button id="run-btn" class="btn btn-primary" type="button">
+                    Run Python
+                </button>
+                <button
+                    id="stop-btn"
+                    class="btn btn-danger"
+                    type="button"
+                    disabled
+                >
+                    Stop
+                </button>
             </div>
-            <button class="settings-gear-btn" type="button" data-settings-button aria-label="Open settings">⚙</button>
-            <button id="run-btn" class="btn btn-primary" type="button">Run Python</button>
-            <button id="stop-btn" class="btn btn-danger" type="button" disabled>Stop</button>
+        </header>
+
+        <main class="app-container">
+            <section class="workspace-panel" aria-label="Block workspace">
+                <div id="blockly-workspace"></div>
+            </section>
+            <section class="code-panel">
+                <div class="preview-box">
+                    <h2 class="section-title">Translated Python Code</h2>
+                    <pre
+                        class="code-editor"
+                    ><code id="python-preview"># Add blocks to begin...</code></pre>
+                </div>
+                <div class="terminal-box">
+                    <div class="terminal-heading">
+                        <h2 class="section-title">Console / Terminal Output</h2>
+                        <button
+                            id="clear-console-btn"
+                            class="text-button"
+                            type="button"
+                        >
+                            Clear console
+                        </button>
+                    </div>
+                    <div
+                        id="console-output"
+                        class="terminal-body"
+                        role="log"
+                        aria-live="polite"
+                    >
+                        <div class="console-line text-muted">&gt; Ready</div>
+                    </div>
+                    <form id="console-input-form" class="console-input" hidden>
+                        <label id="console-input-label" for="console-input"
+                            >Python is waiting for input</label
+                        >
+                        <div>
+                            <input
+                                id="console-input"
+                                autocomplete="off"
+                            /><button type="submit" class="btn btn-primary">
+                                Send
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+        </main>
+
+        <div
+            id="libraries-dialog"
+            class="dialog-backdrop"
+            aria-hidden="true"
+            hidden
+        >
+            <section
+                class="libraries-dialog"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="libraries-title"
+            >
+                <div class="dialog-header">
+                    <div>
+                        <h2 id="libraries-title">Python Libraries</h2>
+                        <p>
+                            Select modules to import. “Export only” modules
+                            require desktop Python and cannot run in this
+                            browser runtime.
+                        </p>
+                    </div>
+                    <button
+                        id="libraries-close-btn"
+                        class="dialog-close-btn"
+                        type="button"
+                        aria-label="Close libraries"
+                    >
+                        ×
+                    </button>
+                </div>
+                <div id="libraries-list" class="libraries-list"></div>
+                <div class="dialog-footer">
+                    <span id="libraries-count">No libraries selected</span>
+                    <button
+                        id="libraries-done-btn"
+                        class="btn btn-primary"
+                        type="button"
+                    >
+                        Done
+                    </button>
+                </div>
+            </section>
         </div>
-    </header>
 
-    <main class="app-container">
-        <section class="workspace-panel" aria-label="Block workspace"><div id="blockly-workspace"></div></section>
-        <section class="code-panel">
-            <div class="preview-box">
-                <h2 class="section-title">Translated Python Code</h2>
-                <pre class="code-editor"><code id="python-preview"># Add blocks to begin...</code></pre>
-            </div>
-            <div class="terminal-box">
-                <div class="terminal-heading">
-                    <h2 class="section-title">Console / Terminal Output</h2>
-                    <button id="clear-console-btn" class="text-button" type="button">Clear console</button>
-                </div>
-                <div id="console-output" class="terminal-body" role="log" aria-live="polite">
-                    <div class="console-line text-muted">&gt; Ready</div>
-                </div>
-                <form id="console-input-form" class="console-input" hidden>
-                    <label id="console-input-label" for="console-input">Python is waiting for input</label>
-                    <div><input id="console-input" autocomplete="off"><button type="submit" class="btn btn-primary">Send</button></div>
-                </form>
-            </div>
-        </section>
-    </main>
+        <xml id="toolbox" style="display: none">
+            <category name="Events" colour="#e0af68"
+                ><block type="py_when_run"></block
+            ></category>
+            <category name="Output" colour="#9d7cd8">
+                <block type="py_print"></block>
+            </category>
+            <category name="Input" colour="#7aa2f7">
+                <block type="py_input"></block>
+            </category>
+            <category name="Miscellaneous" colour="#737aa2">
+                <block type="py_comment"></block>
+                <block type="py_import"></block
+                ><block type="py_from_import"></block>
+            </category>
+            <category name="Variables" colour="#ff9e64">
+                <block type="py_assign"></block
+                ><block type="py_aug_assign"></block>
+                <block type="py_variable"></block
+                ><block type="py_delete"></block>
+            </category>
+            <category name="Logic" colour="#73daca">
+                <block type="controls_if"></block>
+                <block type="py_compare"></block
+                ><block type="py_compare_chain"></block
+                ><block type="py_boolean_op"></block>
+                <block type="py_not"></block><block type="py_boolean"></block>
+                <block type="py_none"></block><block type="py_ternary"></block>
+            </category>
+            <category name="Loops" colour="#7aa2f7">
+                <block type="py_for_range"></block
+                ><block type="py_for_each"></block
+                ><block type="py_range"></block> <block type="py_while"></block
+                ><block type="py_break"></block
+                ><block type="py_continue"></block>
+            </category>
+            <category name="Math" colour="#e0af68">
+                <block type="py_number"></block
+                ><block type="py_arithmetic"></block>
+                <block type="py_builtin_math"></block>
+                <block type="py_round"></block><block type="py_minmax"></block>
+            </category>
+            <category name="Text" colour="#bb9af7">
+                <block type="py_string"></block
+                ><block type="py_fstring"></block>
+                <block type="py_string_concat"></block
+                ><block type="py_len"></block>
+                <block type="py_string_method"></block
+                ><block type="py_replace"></block>
+                <block type="py_subscript"></block>
+            </category>
+            <category name="Lists" colour="#2ac3de">
+                <block type="lists_create_with"></block
+                ><block type="py_list_get"></block>
+                <block type="py_list_set"></block
+                ><block type="py_list_append"></block>
+                <block type="py_list_remove"></block
+                ><block type="py_list_method"></block
+                ><block type="py_list_copy"></block>
+                <block type="py_in"></block>
+            </category>
+            <sep id="library-categories-anchor"></sep>
+            <category
+                name="Functions"
+                colour="#f7768e"
+                custom="PY_FUNCTIONS"
+            ></category>
+        </xml>
 
-    <div id="libraries-dialog" class="dialog-backdrop" hidden>
-        <section class="libraries-dialog" role="dialog" aria-modal="true" aria-labelledby="libraries-title">
-            <div class="dialog-header">
-                <div>
-                    <h2 id="libraries-title">Python Libraries</h2>
-                    <p>Select modules to import at the top of the generated program.</p>
-                </div>
-                <button id="libraries-close-btn" class="dialog-close-btn" type="button" aria-label="Close libraries">×</button>
-            </div>
-            <div id="libraries-list" class="libraries-list"></div>
-            <div class="dialog-footer">
-                <span id="libraries-count">No libraries selected</span>
-                <button id="libraries-done-btn" class="btn btn-primary" type="button">Done</button>
-            </div>
-        </section>
-    </div>
-
-    <xml id="toolbox" style="display:none">
-        <category name="Events" colour="#e0af68"><block type="py_when_run"></block></category>
-        <category name="Output" colour="#9d7cd8">
-            <block type="py_print"></block>
-        </category>
-        <category name="Input" colour="#7aa2f7">
-            <block type="py_input"></block>
-        </category>
-        <category name="Miscellaneous" colour="#737aa2">
-            <block type="py_comment"></block>
-        </category>
-        <category name="Variables" colour="#ff9e64">
-            <block type="py_assign"></block><block type="py_aug_assign"></block>
-            <block type="py_variable"></block><block type="py_delete"></block>
-        </category>
-        <category name="Logic" colour="#73daca">
-            <block type="py_if"></block><block type="py_if_else"></block>
-            <block type="py_compare"></block><block type="py_boolean_op"></block>
-            <block type="py_not"></block><block type="py_boolean"></block>
-            <block type="py_none"></block><block type="py_ternary"></block>
-        </category>
-        <category name="Loops" colour="#7aa2f7">
-            <block type="py_for_range"></block><block type="py_for_each"></block>
-            <block type="py_while"></block><block type="py_break"></block><block type="py_continue"></block>
-        </category>
-        <category name="Math" colour="#e0af68">
-            <block type="py_number"></block><block type="py_arithmetic"></block>
-            <block type="py_builtin_math"></block>
-        </category>
-        <category name="Text" colour="#bb9af7">
-            <block type="py_string"></block><block type="py_fstring"></block>
-            <block type="py_string_concat"></block><block type="py_len"></block>
-            <block type="py_string_method"></block><block type="py_replace"></block>
-            <block type="py_subscript"></block>
-        </category>
-        <category name="Lists" colour="#2ac3de">
-            <block type="py_list"></block><block type="py_list_get"></block>
-            <block type="py_list_set"></block><block type="py_list_append"></block>
-            <block type="py_list_remove"></block><block type="py_list_method"></block>
-            <block type="py_in"></block>
-        </category>
-        <sep id="library-categories-anchor"></sep>
-        <category name="Functions" colour="#f7768e" custom="PY_FUNCTIONS"></category>
-    </xml>
-
-    <script src="vendor/blockly/blockly.min.js"></script>
-    <script src="vendor/blockly/python_compressed.js"></script>
-    <script src="js/blocks.js"></script>
-    <script src="js/project-format.js"></script>
-    <script src="js/python-engine.js"></script>
-    <script src="js/main.js"></script>
-    <script src="js/theme-settings.js"></script>
-</body>
+        <script src="vendor/blockly/blockly.min.js"></script>
+        <script src="vendor/blockly/python_compressed.js"></script>
+        <script src="js/blocks.js"></script>
+        <script src="js/project-format.js"></script>
+        <script src="js/dialog-controller.js"></script>
+        <script src="js/export-service.js"></script>
+        <script src="js/console-view.js"></script>
+        <script src="js/python-engine.js"></script>
+        <script src="js/main.js"></script>
+        <script src="js/theme-settings.js"></script>
+    </body>
 </html>

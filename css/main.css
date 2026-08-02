@@ -8,7 +8,7 @@
     --accent-green: #9ece6a;
     --text-main: #a9b1d6;
     --text-bright: #c0caf5;
-    --text-muted: #565f89;
+    --text-muted: #8994c2;
     --border-color: #292e42;
 }
 
@@ -20,6 +20,7 @@ html,
 body {
     width: 100%;
     height: 100%;
+    height: 100dvh;
     margin: 0;
     overflow: hidden;
 }
@@ -38,7 +39,7 @@ button {
 
 .navbar {
     z-index: 3;
-    height: 58px;
+    height: auto;
     min-height: 58px;
     padding: 0 20px;
     background: var(--bg-card);
@@ -74,7 +75,9 @@ button {
     color: #10140c;
     display: grid;
     place-items: center;
-    font: 800 0.76rem Consolas, monospace;
+    font:
+        800 0.76rem Consolas,
+        monospace;
     box-shadow: 3px 3px 0 #354426;
 }
 
@@ -86,6 +89,13 @@ button {
 .editor-brand .version {
     color: var(--accent-blue);
     font-size: 0.72rem;
+}
+
+.save-status {
+    margin-left: 6px;
+    color: var(--text-muted);
+    font-size: 0.72rem;
+    font-weight: 600;
 }
 
 .version {
@@ -116,7 +126,9 @@ button {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    transition: background 120ms ease, transform 120ms ease;
+    transition:
+        background 120ms ease,
+        transform 120ms ease;
 }
 
 .menu-btn:hover,
@@ -183,7 +195,9 @@ button {
     border-radius: 2px;
     cursor: pointer;
     font-weight: 650;
-    transition: transform 120ms ease, background 120ms ease;
+    transition:
+        transform 120ms ease,
+        background 120ms ease;
 }
 
 .btn:hover {
@@ -208,8 +222,15 @@ button {
     background: #4a5277;
 }
 
-.btn-danger { background: #f7768e; color: #171923; }
-.btn:disabled { cursor: not-allowed; opacity: .55; transform: none; }
+.btn-danger {
+    background: #f7768e;
+    color: #171923;
+}
+.btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+    transform: none;
+}
 
 .app-container {
     min-height: 0;
@@ -226,6 +247,18 @@ button {
 #blockly-workspace {
     position: absolute;
     inset: 0;
+    touch-action: none;
+}
+
+#blockly-workspace.startup-error {
+    padding: 32px;
+    color: var(--text-bright);
+}
+
+#blockly-workspace.startup-error p {
+    max-width: 52ch;
+    color: var(--text-main);
+    line-height: 1.6;
 }
 
 .code-panel {
@@ -245,12 +278,35 @@ button {
     flex-direction: column;
 }
 
-.console-input { padding-top: 10px; }
-.console-input label { display: block; margin-bottom: 6px; color: var(--text-bright); font-size: .8rem; }
-.console-input > div { display: flex; gap: 8px; }
-.console-input input { min-width: 0; flex: 1; padding: 9px 10px; border: 1px solid var(--border-color); background: var(--bg-editor); color: var(--text-bright); font: .85rem Consolas, monospace; }
+.console-input {
+    padding-top: 10px;
+}
+.console-input label {
+    display: block;
+    margin-bottom: 6px;
+    color: var(--text-bright);
+    font-size: 0.8rem;
+}
+.console-input > div {
+    display: flex;
+    gap: 8px;
+}
+.console-input input {
+    min-width: 0;
+    flex: 1;
+    padding: 9px 10px;
+    border: 1px solid var(--border-color);
+    background: var(--bg-editor);
+    color: var(--text-bright);
+    font:
+        0.85rem Consolas,
+        monospace;
+}
 
-:where(button, a, input, select):focus-visible { outline: 3px solid var(--accent-blue); outline-offset: 2px; }
+:where(button, a, input, select):focus-visible {
+    outline: 3px solid var(--accent-blue);
+    outline-offset: 2px;
+}
 
 .preview-box {
     flex: 1;
@@ -373,6 +429,16 @@ button {
     background: rgb(6 8 14 / 72%);
     display: grid;
     place-items: center;
+}
+
+html[data-contrast="high"] body {
+    --border-color: #929dcc;
+    --text-main: #d1d7f5;
+    --text-muted: #b8c1ec;
+}
+
+html[data-font-size="large"] .navbar {
+    flex-wrap: wrap;
 }
 
 .dialog-backdrop[hidden] {
@@ -505,14 +571,52 @@ button {
 }
 
 @media (max-width: 560px) {
-    .navbar { height: auto; min-height: 58px; padding: max(8px, env(safe-area-inset-top)) 10px 8px; gap: 8px; align-items: flex-start; }
-    .editor-brand-name, .editor-brand .version { display: none; }
-    .actions { justify-content: flex-end; flex-wrap: wrap; gap: 6px; }
-    .actions > button, .menu-btn, .settings-gear-btn { min-width: 44px; min-height: 44px; }
-    #libraries-btn { order: 4; }
-    .workspace-panel { min-width: 0; min-height: 52%; }
-    .code-panel { height: 48%; flex-direction: column; overflow: auto; }
-    .preview-box, .terminal-box { width: 100%; min-height: 190px; }
-    .preview-box { border-right: 0; border-bottom: 1px solid var(--border-color); }
-    .dialog-backdrop { padding: 10px; }
+    .navbar {
+        height: auto;
+        min-height: 58px;
+        padding: max(8px, env(safe-area-inset-top)) 10px 8px;
+        gap: 8px;
+        align-items: flex-start;
+    }
+    .editor-brand-name,
+    .editor-brand .version,
+    .save-status {
+        display: none;
+    }
+    .actions {
+        justify-content: flex-end;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+    .actions > button,
+    .menu-btn,
+    .settings-gear-btn {
+        min-width: 44px;
+        min-height: 44px;
+    }
+    #libraries-btn {
+        order: 4;
+    }
+    .workspace-panel {
+        min-width: 0;
+        min-height: 52%;
+    }
+    .code-panel {
+        height: 48%;
+        flex-direction: column;
+        overflow: auto;
+        padding-bottom: env(safe-area-inset-bottom);
+    }
+    .preview-box,
+    .terminal-box {
+        width: 100%;
+        min-height: 190px;
+    }
+    .preview-box {
+        border-right: 0;
+        border-bottom: 1px solid var(--border-color);
+    }
+    .dialog-backdrop {
+        padding: 10px;
+    }
 }

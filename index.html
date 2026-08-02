@@ -1,104 +1,170 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="PyBlocks is a visual block-based environment that makes learning and building Python effortless.">
-    <title>PyBlocks — Making Coding Easy</title>
-    <link rel="icon" type="image/svg+xml" href="assets/images/brand-icons/favicon.svg">
-    <link rel="stylesheet" href="css/home.css">
-    <link rel="stylesheet" href="css/settings.css">
-</head>
-<body class="marketing-page">
-    <nav class="site-nav">
-        <a class="brand" href="index.html"><span class="brand-mark">Py</span>PyBlocks</a>
-        <div class="nav-actions">
-            <a class="nav-link nav-create" href="editor.html">Create</a>
-            <a class="nav-link" href="license.html">License</a>
-            <button class="settings-gear-btn" type="button" data-settings-button aria-label="Open settings">⚙</button>
-        </div>
-    </nav>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta
+            http-equiv="Content-Security-Policy"
+            content="default-src 'self'; script-src 'self'; worker-src 'self' blob:; connect-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; media-src 'self'; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'"
+        />
+        <meta name="referrer" content="no-referrer" />
+        <meta
+            name="description"
+            content="PyBlocks is a visual block-based environment that makes learning and building Python effortless."
+        />
+        <title>PyBlocks — Making Coding Easy</title>
+        <link
+            rel="icon"
+            type="image/svg+xml"
+            href="assets/images/brand-icons/favicon.svg"
+        />
+        <link rel="stylesheet" href="css/home.css" />
+        <link rel="stylesheet" href="css/settings.css" />
+    </head>
+    <body class="marketing-page">
+        <nav class="site-nav">
+            <a class="brand" href="index.html"
+                ><span class="brand-mark">Py</span>PyBlocks</a
+            >
+            <div class="nav-actions">
+                <a class="nav-link nav-create" href="editor.html">Create</a>
+                <a class="nav-link" href="license.html">License</a>
+                <button
+                    class="settings-gear-btn"
+                    type="button"
+                    data-settings-button
+                    aria-label="Open settings"
+                >
+                    ⚙
+                </button>
+            </div>
+        </nav>
 
-    <main>
-        <section class="hero">
-            <div class="hero-copy">
-                <p class="eyebrow">Visual Python Studio</p>
-                <h1>PyBlocks</h1>
-                <p class="motto">Making Coding Easy</p>
-                <p class="hero-description">
-                    Build Python by dragging, dropping, and snapping real syntax together.
-                    Watch clean code appear live, run it instantly, and export your work when you are ready.
-                </p>
-                <div class="hero-actions">
-                    <a class="primary-cta" href="editor.html">Start Coding <span>→</span></a>
-                    <a class="secondary-cta" href="#features">See how it works</a>
+        <main>
+            <section class="hero">
+                <div class="hero-copy">
+                    <p class="eyebrow">Visual Python Studio</p>
+                    <h1>PyBlocks</h1>
+                    <p class="motto">Making Coding Easy</p>
+                    <p class="hero-description">
+                        Build Python by dragging, dropping, and snapping real
+                        syntax together. Watch readable code appear live, run
+                        supported Python safely in the browser, and export your
+                        work when you are ready.
+                    </p>
+                    <div class="hero-actions">
+                        <a class="primary-cta" href="editor.html"
+                            >Start Coding <span>→</span></a
+                        >
+                        <a class="secondary-cta" href="#features"
+                            >See how it works</a
+                        >
+                    </div>
                 </div>
-            </div>
 
-            <div class="block-stage" aria-label="Animated example of Python blocks snapping together">
-                <div class="code-glow"></div>
-                <div class="demo-block event-demo"><span>when Run Python clicked</span></div>
-                <div class="demo-block variable-demo"><span class="syntax">message =</span><span class="input-chip">"Hello, Python!"</span></div>
-                <div class="demo-block print-demo"><span>print (</span><span class="socket">message</span><span>)</span></div>
-                <div class="code-card">
-                    <span class="code-label">PYTHON</span>
-                    <code><i># When Run Python clicked</i><br>message = <b>"Hello, Python!"</b><br><em>print</em>(message)</code>
+                <div
+                    class="block-stage"
+                    aria-label="Animated example of Python blocks snapping together"
+                >
+                    <div class="code-glow"></div>
+                    <div class="demo-block event-demo">
+                        <span>when Run Python clicked</span>
+                    </div>
+                    <div class="demo-block variable-demo">
+                        <span class="syntax">message =</span
+                        ><span class="input-chip">"Hello, Python!"</span>
+                    </div>
+                    <div class="demo-block print-demo">
+                        <span>print (</span><span class="socket">message</span
+                        ><span>)</span>
+                    </div>
+                    <div class="code-card">
+                        <span class="code-label">PYTHON</span>
+                        <code
+                            ><i># When Run Python clicked</i><br />message =
+                            <b>"Hello, Python!"</b><br /><em>print</em
+                            >(message)</code
+                        >
+                    </div>
+                    <div class="floating-piece piece-one">
+                        <span class="if-condition">if&nbsp; True :</span>
+                        <span class="if-body-marker">⋮</span>
+                    </div>
+                    <div class="floating-piece piece-two">
+                        return&nbsp; value
+                    </div>
                 </div>
-                <div class="floating-piece piece-one">
-                    <span class="if-condition">if&nbsp; True :</span>
-                    <span class="if-body-marker">⋮</span>
+            </section>
+
+            <section class="trust-strip" aria-label="PyBlocks highlights">
+                <span>Drag &amp; Drop</span><b>•</b
+                ><span>Real Python Syntax</span><b>•</b>
+                <span>Isolated Execution</span><b>•</b><span>Export Ready</span>
+            </section>
+
+            <section id="features" class="features-section">
+                <div class="section-heading">
+                    <p class="eyebrow">From idea to Python</p>
+                    <h2>A clearer way to learn and build</h2>
+                    <p>
+                        PyBlocks keeps the visual confidence of blocks while
+                        teaching the structure of genuine Python.
+                    </p>
                 </div>
-                <div class="floating-piece piece-two">return&nbsp; value</div>
-            </div>
-        </section>
+                <div class="feature-grid">
+                    <article class="feature-card">
+                        <span class="feature-number">01</span>
+                        <h3>Build Visually</h3>
+                        <p>
+                            Snap organized Python-shaped blocks together in a
+                            focused Blockly workspace.
+                        </p>
+                        <div class="mini-stack"><i></i><i></i><i></i></div>
+                    </article>
+                    <article class="feature-card">
+                        <span class="feature-number">02</span>
+                        <h3>See Real Python</h3>
+                        <p>
+                            Every change translates into readable Python code
+                            beside your workspace in real time.
+                        </p>
+                        <div class="mini-code">
+                            for item in items:<br />&nbsp;&nbsp;print(item)
+                        </div>
+                    </article>
+                    <article class="feature-card">
+                        <span class="feature-number">03</span>
+                        <h3>Run and Export</h3>
+                        <p>
+                            Test your program in the built-in console, then
+                            download a clean `.py` file.
+                        </p>
+                        <div class="mini-terminal">
+                            &gt; Hello, Python!<br /><span>&gt; code 0</span>
+                        </div>
+                    </article>
+                </div>
+            </section>
 
-        <section class="trust-strip" aria-label="PyBlocks highlights">
-            <span>Drag &amp; Drop</span><b>•</b><span>Real Python Syntax</span><b>•</b>
-            <span>Instant Execution</span><b>•</b><span>Export Ready</span>
-        </section>
+            <section class="final-cta">
+                <div>
+                    <p class="eyebrow">Your next program starts here</p>
+                    <h2>Turn an idea into working Python.</h2>
+                </div>
+                <a class="primary-cta" href="editor.html"
+                    >Open PyBlocks <span>→</span></a
+                >
+            </section>
+        </main>
 
-        <section id="features" class="features-section">
-            <div class="section-heading">
-                <p class="eyebrow">From idea to Python</p>
-                <h2>A clearer way to learn and build</h2>
-                <p>PyBlocks keeps the visual confidence of blocks while teaching the structure of genuine Python.</p>
-            </div>
-            <div class="feature-grid">
-                <article class="feature-card">
-                    <span class="feature-number">01</span>
-                    <h3>Build Visually</h3>
-                    <p>Snap organized Python-shaped blocks together in a focused Blockly workspace.</p>
-                    <div class="mini-stack"><i></i><i></i><i></i></div>
-                </article>
-                <article class="feature-card">
-                    <span class="feature-number">02</span>
-                    <h3>See Real Python</h3>
-                    <p>Every change translates into readable Python code beside your workspace in real time.</p>
-                    <div class="mini-code">for item in items:<br>&nbsp;&nbsp;print(item)</div>
-                </article>
-                <article class="feature-card">
-                    <span class="feature-number">03</span>
-                    <h3>Run and Export</h3>
-                    <p>Test your program in the built-in console, then download a clean `.py` file.</p>
-                    <div class="mini-terminal">&gt; Hello, Python!<br><span>&gt; code 0</span></div>
-                </article>
-            </div>
-        </section>
-
-        <section class="final-cta">
-            <div>
-                <p class="eyebrow">Your next program starts here</p>
-                <h2>Turn an idea into working Python.</h2>
-            </div>
-            <a class="primary-cta" href="editor.html">Open PyBlocks <span>→</span></a>
-        </section>
-    </main>
-
-    <footer>
-        <a class="brand" href="index.html"><span class="brand-mark">Py</span>PyBlocks</a>
-        <p>Visual Python creation for personal and educational use.</p>
-        <a href="license.html">License</a>
-    </footer>
-    <script src="js/theme-settings.js"></script>
-</body>
+        <footer>
+            <a class="brand" href="index.html"
+                ><span class="brand-mark">Py</span>PyBlocks</a
+            >
+            <p>Visual Python creation for personal and educational use.</p>
+            <a href="license.html">License</a>
+        </footer>
+        <script src="js/dialog-controller.js"></script>
+        <script src="js/theme-settings.js"></script>
+    </body>
 </html>
