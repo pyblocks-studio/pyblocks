@@ -23,7 +23,7 @@ Skulpt is a Python implementation for browsers, not CPython. Native extensions, 
 - The editor autosaves a debounced, versioned snapshot in local browser storage and restores it at startup.
 - **Save Project** and **Open Project** use `.pyblocks` JSON files containing Blockly serialization, selected libraries, the project name, and execution settings.
 - Project files are size-limited and validated before loading. Malformed, unknown-version, unsafe, or invalid Blockly state is rejected without replacing the current workspace.
-- **Import Python as Raw Code** preserves source losslessly in a raw-source block. It intentionally does not claim to convert Python into editable visual blocks.
+- **Import Python to Blocks** parses Python with the bundled Python parser and converts supported syntax into editable visual blocks. Unsupported statements become gray comment blocks containing `Unknown Syntax`; invalid Python leaves the current workspace unchanged.
 - **Export Python** writes UTF-8 `.py` source with a final newline. Visual project export remains separate.
 - Only statements connected below the single **when Run Python clicked** event are generated as executable event code. Function-definition hats are generated before that event stack; other floating blocks do nothing.
 

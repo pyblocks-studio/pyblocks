@@ -278,7 +278,7 @@ function initProjectMenu(workspace) {
 
         try {
             const code = await file.text();
-            window.PythonEngine.importRawPython(code);
+            await window.PythonEngine.importPython(code);
         } catch (error) {
             window.PythonEngine.showError(
                 `Could not import ${file.name}: ${error.message}`,

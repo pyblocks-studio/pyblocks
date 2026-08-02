@@ -162,6 +162,36 @@ window.PythonEngine = {
         );
     },
 
+    async importPython(sourceCode) {
+        if (!this.workspace) return;
+        const code = String(sourceCode).replace(/^\uFEFF/, "");
+        const previous = Blockly.serialization.workspaces.save(this.workspace);
+        let importStats;
+        this.suppressChanges = true;
+        Blockly.Events.setGroup(true);
+        try {
+            this.workspace.clear();
+            importStats = await window.PyBlocksPythonImporter.convert(
+                code,
+                this.workspace,
+            );
+            this.setLibraries([], { markDirty: false });
+            Blockly.svgResize(this.workspace);
+            this.showNotice(
+                `Python imported: ${importStats.converted} block${importStats.converted === 1 ? "" : "s"} converted, ${importStats.unknown} Unknown Syntax comment${importStats.unknown === 1 ? "" : "s"} added.`,
+            );
+        } catch (error) {
+            this.workspace.clear();
+            Blockly.serialization.workspaces.load(previous, this.workspace);
+            throw error;
+        } finally {
+            Blockly.Events.setGroup(false);
+            this.suppressChanges = false;
+        }
+        this.markChanged();
+        return importStats;
+    },
+
     clearConsole(message = "> Ready") {
         this.consoleView.clear(message);
     },

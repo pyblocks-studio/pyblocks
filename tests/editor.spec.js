@@ -184,6 +184,65 @@ test("raw Python import is lossless and only event-connected code is generated",
     expect((generated.match(/print\(/g) || []).length).toBe(1);
 });
 
+test("Python import creates visual blocks and marks unsupported syntax", async ({
+    page,
+}) => {
+    await page.goto("/editor.html");
+    const result = await page.evaluate(async () => {
+        const stats = await window.PythonEngine.importPython(
+            'name = input("Name?")\nprint(name)\nclass Unsupported:\n    pass\n',
+        );
+        return {
+            stats,
+            types: window.PythonEngine.workspace
+                .getAllBlocks(false)
+                .map((block) => block.type),
+            comments: window.PythonEngine.workspace
+                .getBlocksByType("py_comment", false)
+                .map((block) => block.getFieldValue("COMMENT")),
+        };
+    });
+    expect(result.types).toEqual(
+        expect.arrayContaining([
+            "py_when_run",
+            "py_assign",
+            "py_input",
+            "py_print",
+            "py_variable",
+            "py_comment",
+        ]),
+    );
+    expect(result.comments).toContain("Unknown Syntax");
+    expect(result.stats.converted).toBe(2);
+    expect(result.stats.unknown).toBe(1);
+
+    const rollback = await page.evaluate(async () => {
+        const before = JSON.stringify(
+            Blockly.serialization.workspaces.save(
+                window.PythonEngine.workspace,
+            ),
+        );
+        let message = "";
+        try {
+            await window.PythonEngine.importPython("if :\n    pass\n");
+        } catch (error) {
+            message = error.message;
+        }
+        return {
+            unchanged:
+                before ===
+                JSON.stringify(
+                    Blockly.serialization.workspaces.save(
+                        window.PythonEngine.workspace,
+                    ),
+                ),
+            message,
+        };
+    });
+    expect(rollback.unchanged).toBe(true);
+    expect(rollback.message).toContain("SyntaxError");
+});
+
 test("system theme and accessibility preferences apply live and survive reload", async ({
     page,
 }, testInfo) => {

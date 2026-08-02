@@ -35,6 +35,33 @@ async function ensureRuntime() {
     );
 }
 
+function astValue(value, seen = new WeakSet()) {
+    if (
+        value == null ||
+        typeof value === "string" ||
+        typeof value === "number" ||
+        typeof value === "boolean"
+    )
+        return value;
+    if (Array.isArray(value)) return value.map((item) => astValue(item, seen));
+    if (typeof value !== "object") return String(value);
+    if (seen.has(value)) return null;
+    if (typeof value.v === "string" || typeof value.v === "number")
+        return value.v;
+    seen.add(value);
+    const result = {
+        type: value._astname || value.constructor?.name || "Object",
+    };
+    for (const key of Object.keys(value)) {
+        if (key.startsWith("$") || key === "ctx") continue;
+        const item = value[key];
+        if (typeof item === "function") continue;
+        result[key] = astValue(item, seen);
+    }
+    seen.delete(value);
+    return result;
+}
+
 self.addEventListener("message", async (event) => {
     const message = event.data || {};
     if (message.type === "input-response") {
@@ -42,6 +69,38 @@ self.addEventListener("message", async (event) => {
         if (pending) {
             pendingInputs.delete(message.id);
             pending.resolve(String(message.value ?? ""));
+        }
+        return;
+    }
+    if (message.type === "parse") {
+        try {
+            await ensureRuntime();
+            self.Sk.configure({
+                read: runtimeRead,
+                __future__: self.Sk.python3,
+            });
+            const parsed = self.Sk.parse(
+                "<import>",
+                String(message.code || ""),
+            );
+            const ast = self.Sk.astFromParse(
+                parsed.cst,
+                "<import>",
+                parsed.flags,
+            );
+            self.postMessage({ type: "parsed", ast: astValue(ast) });
+        } catch (error) {
+            const traceback = Array.isArray(error?.traceback)
+                ? error.traceback
+                : [];
+            const last = traceback[traceback.length - 1] || {};
+            self.postMessage({
+                type: "parse-error",
+                name: error?.tp$name || error?.name || "SyntaxError",
+                message: String(error?.toString?.() || error),
+                line: Number(last.lineno || error?.lineno) || null,
+                column: Number(error?.offset) || null,
+            });
         }
         return;
     }
