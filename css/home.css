@@ -121,11 +121,20 @@ button {
     color: var(--muted);
     font-weight: 650;
 }
+button.nav-link {
+    background: var(--surface);
+    border-color: var(--border);
+    color: var(--text);
+    cursor: pointer;
+}
 .nav-link:hover,
 .nav-link.active {
     color: var(--text);
     border-color: var(--border);
     background: var(--surface);
+}
+button.nav-link:hover {
+    background: #10131d;
 }
 .nav-create {
     color: #11170d;
