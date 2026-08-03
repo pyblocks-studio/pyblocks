@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta
+            http-equiv="Content-Security-Policy"
+            content="default-src 'self'; script-src 'self'; connect-src 'self' https://*.supabase.co; style-src 'self' 'unsafe-inline'; img-src 'self' data:; object-src 'none'; base-uri 'self'"
+        />
+        <meta name="referrer" content="no-referrer" />
+        <title>Community Project — PyBlocks</title>
+        <link rel="icon" href="assets/images/brand-icons/favicon.svg" />
+        <link rel="stylesheet" href="css/home.css" />
+        <link rel="stylesheet" href="css/community.css" />
+    </head>
+    <body class="community-page" data-page="project">
+        <nav class="site-nav">
+            <a class="brand" href="index.html"
+                ><span class="brand-mark">Py</span>PyBlocks</a
+            >
+            <div class="nav-actions">
+                <a class="nav-link" href="dashboard.html">Discover</a
+                ><a class="nav-link nav-create" href="editor.html">Create</a>
+            </div>
+        </nav>
+        <main class="community-shell">
+            <section class="project-detail">
+                <p class="eyebrow">Published project</p>
+                <h1 id="project-detail-name">Loading…</h1>
+                <p id="project-detail-author"></p>
+                <p id="project-detail-description"></p>
+                <div class="project-code-card">
+                    <span>PYTHON PREVIEW</span>
+                    <pre><code id="project-detail-code">Loading project…</code></pre>
+                </div>
+                <a class="primary-cta" href="editor.html">Build your own →</a>
+            </section>
+        </main>
+        <script src="js/cloud-config.js"></script>
+        <script src="js/project-format.js"></script>
+        <script src="js/cloud-service.js"></script>
+        <script src="js/community.js"></script>
+    </body>
+</html>

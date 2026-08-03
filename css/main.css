@@ -37,6 +37,18 @@ button {
     font: inherit;
 }
 
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
 .navbar {
     z-index: 3;
     height: auto;
@@ -109,6 +121,30 @@ button {
     display: flex;
     align-items: center;
     gap: 9px;
+}
+
+.project-title-controls {
+    width: min(390px, 34vw);
+    margin: 8px auto;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.project-name-input {
+    min-width: 0;
+    flex: 1;
+    height: 38px;
+    padding: 0 11px;
+    border: 1px solid var(--border-color);
+    border-radius: 2px;
+    background: var(--bg-panel);
+    color: var(--text-bright);
+    font-weight: 750;
+}
+
+.save-now-btn {
+    white-space: nowrap;
 }
 
 .menu-container {
@@ -616,6 +652,29 @@ html[data-font-size="large"] .navbar {
 .cloud-project-row small {
     margin-top: 4px;
     color: var(--text-muted);
+}
+
+@media (max-width: 1000px) {
+    .navbar {
+        padding: 8px 12px;
+        flex-wrap: wrap;
+        gap: 7px;
+    }
+
+    .project-title-controls {
+        width: 100%;
+        margin: 0;
+        order: 3;
+    }
+
+    .actions {
+        margin-left: auto;
+        gap: 6px;
+    }
+
+    .actions .btn {
+        padding-inline: 10px;
+    }
 }
 
 @media (max-width: 850px) {

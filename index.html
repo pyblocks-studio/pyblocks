@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta
             http-equiv="Content-Security-Policy"
-            content="default-src 'self'; script-src 'self'; worker-src 'self' blob:; connect-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; media-src 'self'; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'"
+            content="default-src 'self'; script-src 'self'; worker-src 'self' blob:; connect-src 'self' https://*.supabase.co; style-src 'self' 'unsafe-inline'; img-src 'self' data:; media-src 'self'; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'"
         />
         <meta name="referrer" content="no-referrer" />
         <meta
@@ -29,6 +29,13 @@
             <div class="nav-actions">
                 <a class="nav-link nav-create" href="editor.html">Create</a>
                 <a class="nav-link" href="license.html">License</a>
+                <button
+                    id="home-account-btn"
+                    class="nav-link account-nav"
+                    type="button"
+                >
+                    Sign in
+                </button>
                 <button
                     class="settings-gear-btn"
                     type="button"
@@ -164,7 +171,11 @@
             <p>Visual Python creation for personal and educational use.</p>
             <a href="license.html">License</a>
         </footer>
+        <div id="account-dialog-host"></div>
         <script src="js/dialog-controller.js"></script>
+        <script src="js/cloud-config.js"></script>
+        <script src="js/cloud-service.js"></script>
+        <script src="js/account-portal.js"></script>
         <script src="js/theme-settings.js"></script>
     </body>
 </html>

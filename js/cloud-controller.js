@@ -3,6 +3,9 @@
 window.PyBlocksCloudController = (() => {
     let dialog;
     let opener;
+    let currentProjectId = null;
+    let currentPublished = false;
+    let autosaveTimer = null;
 
     function setStatus(message, error = false) {
         const status = document.getElementById("cloud-status");
@@ -23,6 +26,11 @@ window.PyBlocksCloudController = (() => {
         button.classList.toggle("is-signed-in", Boolean(user));
     }
 
+    function syncProjectName(name = window.PythonEngine.projectName) {
+        const input = document.getElementById("project-name-input");
+        if (input && input.value !== name) input.value = name;
+    }
+
     async function renderProjects() {
         const list = document.getElementById("cloud-project-list");
         list.replaceChildren();
@@ -35,7 +43,7 @@ window.PyBlocksCloudController = (() => {
                 empty.textContent = "No cloud projects yet.";
                 list.append(empty);
             }
-            for (const project of projects) list.append(projectRow(project));
+            projects.forEach((project) => list.append(projectRow(project)));
             setStatus(
                 `${projects.length} cloud project${projects.length === 1 ? "" : "s"}`,
             );
@@ -51,22 +59,23 @@ window.PyBlocksCloudController = (() => {
         const title = document.createElement("strong");
         title.textContent = project.name;
         const meta = document.createElement("small");
-        const size = Math.max(1, Math.round(project.uncompressed_bytes / 1024));
-        meta.textContent = `${size} KB before compression · ${new Date(project.updated_at).toLocaleString()}`;
+        meta.textContent = `${project.is_published ? "Published" : "Draft"} · ${new Date(project.updated_at).toLocaleString()}`;
         details.append(title, meta);
-
         const actions = document.createElement("div");
-        const open = document.createElement("button");
-        open.type = "button";
-        open.className = "btn btn-secondary";
-        open.textContent = "Open";
-        open.addEventListener("click", () => openProject(project));
-        const remove = document.createElement("button");
-        remove.type = "button";
-        remove.className = "text-button danger-action";
-        remove.textContent = "Delete";
-        remove.addEventListener("click", () => deleteProject(project));
-        actions.append(open, remove);
+        const openButton = document.createElement("button");
+        openButton.type = "button";
+        openButton.className = "btn btn-secondary";
+        openButton.textContent = "Open";
+        openButton.addEventListener("click", () => void openProject(project));
+        const removeButton = document.createElement("button");
+        removeButton.type = "button";
+        removeButton.className = "text-button danger-action";
+        removeButton.textContent = "Delete";
+        removeButton.addEventListener(
+            "click",
+            () => void deleteProject(project),
+        );
+        actions.append(openButton, removeButton);
         row.append(details, actions);
         return row;
     }
@@ -82,9 +91,10 @@ window.PyBlocksCloudController = (() => {
         setStatus(`Opening ${project.name}…`);
         try {
             const loaded = await window.PyBlocksCloud.loadProject(project.id);
+            currentProjectId = project.id;
+            currentPublished = Boolean(project.is_published);
             window.PythonEngine.loadProject(loaded, { saved: true });
             window.PythonEngine.saveAutosave();
-            setStatus(`Opened ${project.name}.`);
             close();
         } catch (error) {
             setStatus(error.message, true);
@@ -95,55 +105,73 @@ window.PyBlocksCloudController = (() => {
         if (!window.confirm(`Delete ${project.name} from the cloud?`)) return;
         try {
             await window.PyBlocksCloud.deleteProject(project.id);
+            if (currentProjectId === project.id) currentProjectId = null;
             await renderProjects();
         } catch (error) {
             setStatus(error.message, true);
         }
     }
 
-    async function saveCurrentProject() {
-        const requested = window.prompt(
-            "Cloud project name:",
-            window.PythonEngine.projectName === "Untitled"
-                ? "My project"
-                : window.PythonEngine.projectName,
-        );
-        if (!requested) return;
+    async function saveCurrentProject({ quiet = false } = {}) {
+        if (!window.PyBlocksCloud.currentUser()) {
+            if (!quiet)
+                open({ currentTarget: document.getElementById("account-btn") });
+            return;
+        }
+        const input = document.getElementById("project-name-input");
         window.PythonEngine.projectName =
-            requested.trim().slice(0, 120) || "My project";
-        setStatus("Compressing and saving project…");
+            input.value.trim().slice(0, 120) || "Untitled";
+        input.value = window.PythonEngine.projectName;
+        if (!quiet) setStatus("Compressing and saving project…");
         try {
-            await window.PyBlocksCloud.saveProject(
+            await window.PyBlocksCloud.ensureProfile();
+            const saved = await window.PyBlocksCloud.saveProject(
                 window.PythonEngine.buildProject(),
+                { id: currentProjectId, isPublished: currentPublished },
             );
+            currentProjectId = saved?.id || currentProjectId;
             window.PythonEngine.dirty = false;
             window.PythonEngine.updateSaveStatus("Saved to cloud");
-            await renderProjects();
+            if (!quiet && !dialog.hidden) await renderProjects();
         } catch (error) {
-            setStatus(error.message, true);
+            if (quiet)
+                window.PythonEngine.updateSaveStatus("Cloud autosave failed");
+            else setStatus(error.message, true);
         }
+    }
+
+    function scheduleAutosave() {
+        clearTimeout(autosaveTimer);
+        if (!window.PyBlocksCloud.currentUser()) return;
+        window.PythonEngine.updateSaveStatus("Autosave queued");
+        autosaveTimer = setTimeout(
+            () => void saveCurrentProject({ quiet: true }),
+            1800,
+        );
     }
 
     async function submitAuth(event) {
         event.preventDefault();
         const form = event.currentTarget;
-        const mode = form.elements.mode.value;
         const values = {
             username: form.elements.username.value.trim(),
             email: form.elements.email.value.trim(),
             password: form.elements.password.value,
         };
-        setStatus(mode === "signup" ? "Creating account…" : "Signing in…");
+        const signingUp = form.elements.mode.value === "signup";
+        setStatus(signingUp ? "Creating account…" : "Signing in…");
         try {
-            if (mode === "signup") {
+            if (signingUp) {
                 const result = await window.PyBlocksCloud.signUp(values);
                 setStatus(result.message);
                 if (!result.signedIn) return;
-            } else await window.PyBlocksCloud.signIn(values);
+            } else {
+                await window.PyBlocksCloud.signIn(values);
+            }
+            await window.PyBlocksCloud.ensureProfile();
             form.reset();
             updateAccountButton();
-            show("projects");
-            await renderProjects();
+            close();
         } catch (error) {
             setStatus(error.message, true);
         }
@@ -152,20 +180,22 @@ window.PyBlocksCloudController = (() => {
     function open(event) {
         opener = event?.currentTarget || document.activeElement;
         const user = window.PyBlocksCloud.currentUser();
-        show(user ? "projects" : "auth");
-        document.getElementById("cloud-user-label").textContent = user
-            ? `${user.username} (${user.email})`
-            : "Not signed in";
-        if (!window.PyBlocksCloud.configured())
-            setStatus(
-                "Cloud setup is required. Follow docs/CLOUD_SETUP.md, then add the public connection values to js/cloud-config.js.",
-                true,
-            );
-        else if (user) void renderProjects();
-        else setStatus("Sign in or create an account.");
+        if (user) {
+            window.location.href = "dashboard.html";
+            return;
+        }
+        show("auth");
+        document.getElementById("cloud-user-label").textContent =
+            "Not signed in";
+        setStatus(
+            window.PyBlocksCloud.configured()
+                ? "Sign in or create an account."
+                : "Cloud setup is required. Follow docs/CLOUD_SETUP.md.",
+            !window.PyBlocksCloud.configured(),
+        );
         window.PyBlocksDialogs.open(dialog, {
             opener,
-            initialFocus: dialog.querySelector("input, button"),
+            initialFocus: dialog.querySelector("select"),
             onEscape: close,
         });
     }
@@ -185,7 +215,10 @@ window.PyBlocksCloudController = (() => {
             .addEventListener("submit", submitAuth);
         document
             .getElementById("cloud-save-btn")
-            .addEventListener("click", saveCurrentProject);
+            .addEventListener("click", () => void saveCurrentProject());
+        document
+            .getElementById("save-now-btn")
+            .addEventListener("click", () => void saveCurrentProject());
         document
             .getElementById("cloud-signout-btn")
             .addEventListener("click", async () => {
@@ -202,6 +235,13 @@ window.PyBlocksCloudController = (() => {
                 usernameField.hidden = !signingUp;
                 usernameField.querySelector("input").required = signingUp;
             });
+        document
+            .getElementById("project-name-input")
+            .addEventListener("input", (event) => {
+                window.PythonEngine.projectName =
+                    event.target.value.trim().slice(0, 120) || "Untitled";
+                window.PythonEngine.markChanged();
+            });
         dialog.addEventListener("click", (event) => {
             if (event.target === dialog) close();
         });
@@ -209,8 +249,36 @@ window.PyBlocksCloudController = (() => {
             "pyblocks:cloud-session",
             updateAccountButton,
         );
+        document.addEventListener("pyblocks:project-changed", scheduleAutosave);
+        document.addEventListener("pyblocks:project-loaded", (event) => {
+            syncProjectName(event.detail?.name);
+            if (event.detail?.isNew) {
+                currentProjectId = null;
+                currentPublished = false;
+            }
+        });
+        window.setInterval(() => {
+            if (!document.hidden && window.PyBlocksCloud.currentUser())
+                void window.PyBlocksCloud.recordActivity(60);
+        }, 60_000);
         updateAccountButton();
+        syncProjectName();
+        const requestedProjectId = new window.URLSearchParams(
+            window.location.search,
+        ).get("cloud");
+        if (requestedProjectId && window.PyBlocksCloud.currentUser()) {
+            void window.PyBlocksCloud.listProjects()
+                .then((projects) =>
+                    projects.find(
+                        (project) => project.id === requestedProjectId,
+                    ),
+                )
+                .then((project) => {
+                    if (project) return openProject(project);
+                    return null;
+                });
+        }
     }
 
-    return { init, open };
+    return { init, open, saveCurrentProject };
 })();

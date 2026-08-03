@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta
+            http-equiv="Content-Security-Policy"
+            content="default-src 'self'; script-src 'self'; connect-src 'self' https://*.supabase.co; style-src 'self' 'unsafe-inline'; img-src 'self' data:; object-src 'none'; base-uri 'self'"
+        />
+        <meta name="referrer" content="no-referrer" />
+        <title>Profile — PyBlocks</title>
+        <link rel="icon" href="assets/images/brand-icons/favicon.svg" />
+        <link rel="stylesheet" href="css/home.css" />
+        <link rel="stylesheet" href="css/community.css" />
+    </head>
+    <body class="community-page" data-page="profile">
+        <nav class="site-nav">
+            <a class="brand" href="index.html"
+                ><span class="brand-mark">Py</span>PyBlocks</a
+            >
+            <div class="nav-actions">
+                <a class="nav-link" href="dashboard.html">Dashboard</a
+                ><a class="nav-link nav-create" href="editor.html">Create</a>
+            </div>
+        </nav>
+        <main class="community-shell">
+            <section id="profile-hero" class="profile-hero">
+                <div>
+                    <p class="eyebrow">PyBlocks creator</p>
+                    <h1 id="public-username">Loading…</h1>
+                    <p id="public-joined"></p>
+                </div>
+                <span id="owner-badge" class="owner-badge" hidden>OWNER</span>
+            </section>
+            <section class="dashboard-section">
+                <div class="section-row">
+                    <div>
+                        <p class="eyebrow">Published work</p>
+                        <h2>Projects</h2>
+                    </div>
+                </div>
+                <div id="public-projects" class="project-grid"></div>
+            </section>
+        </main>
+        <script src="js/cloud-config.js"></script>
+        <script src="js/project-format.js"></script>
+        <script src="js/cloud-service.js"></script>
+        <script src="js/community.js"></script>
+    </body>
+</html>

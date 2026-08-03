@@ -137,6 +137,44 @@ window.PyBlocksCloud = (() => {
         return currentUser();
     }
 
+    async function ensureProfile() {
+        const user = currentUser();
+        if (!user) throw new Error("Sign in to continue.");
+        const existing = await request(
+            `/rest/v1/pyblocks_profiles?user_id=eq.${encodeURIComponent(user.id)}&select=user_id,username,role,active_seconds,joined_at`,
+            { method: "GET" },
+            true,
+        );
+        if (existing?.length) return existing[0];
+        const rows = await request(
+            "/rest/v1/pyblocks_profiles",
+            {
+                method: "POST",
+                headers: { Prefer: "return=representation" },
+                body: JSON.stringify({
+                    user_id: user.id,
+                    username: user.username
+                        .replace(/[^A-Za-z0-9_]/g, "_")
+                        .slice(0, 32),
+                }),
+            },
+            true,
+        );
+        return rows?.[0] || null;
+    }
+
+    async function getMyProfile() {
+        return ensureProfile();
+    }
+
+    async function getProfileByUsername(username) {
+        const rows = await request(
+            `/rest/v1/pyblocks_profiles?username=ilike.${encodeURIComponent(username)}&select=user_id,username,role,active_seconds,joined_at&limit=1`,
+            { method: "GET" },
+        );
+        return rows?.[0] || null;
+    }
+
     async function signOut() {
         if (session?.access_token) {
             try {
@@ -198,15 +236,39 @@ window.PyBlocksCloud = (() => {
 
     async function listProjects() {
         return request(
-            "/rest/v1/pyblocks_projects?select=id,name,updated_at,uncompressed_bytes&order=updated_at.desc",
+            "/rest/v1/pyblocks_projects?select=id,name,description,is_published,published_at,updated_at,uncompressed_bytes&order=updated_at.desc",
             { method: "GET" },
             true,
         );
     }
 
-    async function saveProject(project) {
+    async function saveProject(project, options = {}) {
         const text = JSON.stringify(project);
         const packed = await compress(text);
+        const published = Boolean(options.isPublished);
+        const record = {
+            user_id: currentUser().id,
+            name: project.name,
+            description: String(options.description || "").slice(0, 500),
+            payload: packed.payload,
+            encoding: packed.encoding,
+            uncompressed_bytes: packed.uncompressedBytes,
+            is_published: published,
+            published_at: published ? new Date().toISOString() : null,
+            updated_at: new Date().toISOString(),
+        };
+        if (options.id) {
+            const rows = await request(
+                `/rest/v1/pyblocks_projects?id=eq.${encodeURIComponent(options.id)}`,
+                {
+                    method: "PATCH",
+                    headers: { Prefer: "return=representation" },
+                    body: JSON.stringify(record),
+                },
+                true,
+            );
+            return rows?.[0] || null;
+        }
         const rows = await request(
             "/rest/v1/pyblocks_projects?on_conflict=user_id,name",
             {
@@ -214,14 +276,7 @@ window.PyBlocksCloud = (() => {
                 headers: {
                     Prefer: "resolution=merge-duplicates,return=representation",
                 },
-                body: JSON.stringify({
-                    user_id: currentUser().id,
-                    name: project.name,
-                    payload: packed.payload,
-                    encoding: packed.encoding,
-                    uncompressed_bytes: packed.uncompressedBytes,
-                    updated_at: new Date().toISOString(),
-                }),
+                body: JSON.stringify(record),
             },
             true,
         );
@@ -248,16 +303,117 @@ window.PyBlocksCloud = (() => {
         );
     }
 
+    async function updateProjectMetadata(id, changes) {
+        const rows = await request(
+            `/rest/v1/pyblocks_projects?id=eq.${encodeURIComponent(id)}`,
+            {
+                method: "PATCH",
+                headers: { Prefer: "return=representation" },
+                body: JSON.stringify({
+                    name: String(changes.name || "Untitled").slice(0, 120),
+                    description: String(changes.description || "").slice(
+                        0,
+                        500,
+                    ),
+                    is_published: Boolean(changes.isPublished),
+                    published_at: changes.isPublished
+                        ? new Date().toISOString()
+                        : null,
+                    updated_at: new Date().toISOString(),
+                }),
+            },
+            true,
+        );
+        return rows?.[0] || null;
+    }
+
+    async function getProfiles(userIds) {
+        const ids = [...new Set(userIds)].filter(Boolean);
+        if (!ids.length) return [];
+        return request(
+            `/rest/v1/pyblocks_profiles?user_id=in.(${ids.join(",")})&select=user_id,username,role,active_seconds,joined_at`,
+            { method: "GET" },
+        );
+    }
+
+    async function listPublishedProjects(limit = 20) {
+        return request(
+            `/rest/v1/pyblocks_projects?is_published=eq.true&select=id,user_id,name,description,published_at,updated_at&order=updated_at.desc&limit=${Math.min(60, Math.max(1, limit))}`,
+            { method: "GET" },
+        );
+    }
+
+    async function listPublishedByUser(userId) {
+        return request(
+            `/rest/v1/pyblocks_projects?user_id=eq.${encodeURIComponent(userId)}&is_published=eq.true&select=id,user_id,name,description,published_at,updated_at&order=updated_at.desc`,
+            { method: "GET" },
+        );
+    }
+
+    async function loadPublishedProject(id) {
+        const rows = await request(
+            `/rest/v1/pyblocks_projects?id=eq.${encodeURIComponent(id)}&is_published=eq.true&select=id,user_id,name,description,payload,encoding,published_at,updated_at&limit=1`,
+            { method: "GET" },
+        );
+        if (!rows?.length) throw new Error("Published project was not found.");
+        const row = rows[0];
+        return {
+            ...row,
+            project: window.PyBlocksProjectFormat.parse(
+                await decompress(row.payload, row.encoding),
+            ),
+        };
+    }
+
+    async function searchProjects(query) {
+        const pattern = `*${String(query).replace(/[%*,()]/g, "")}*`;
+        return request(
+            `/rest/v1/pyblocks_projects?is_published=eq.true&name=ilike.${encodeURIComponent(pattern)}&select=id,user_id,name,description,published_at,updated_at&order=updated_at.desc&limit=30`,
+            { method: "GET" },
+        );
+    }
+
+    async function searchUsers(query) {
+        const pattern = `*${String(query).replace(/[%*,()]/g, "")}*`;
+        return request(
+            `/rest/v1/pyblocks_profiles?username=ilike.${encodeURIComponent(pattern)}&select=user_id,username,role,active_seconds,joined_at&order=username.asc&limit=30`,
+            { method: "GET" },
+        );
+    }
+
+    async function recordActivity(seconds) {
+        if (!currentUser()) return;
+        await request(
+            "/rest/v1/rpc/record_pyblocks_activity",
+            {
+                method: "POST",
+                body: JSON.stringify({ seconds }),
+            },
+            true,
+        );
+    }
+
     return {
         configured,
         currentUser,
         signUp,
         signIn,
         signOut,
+        ensureProfile,
+        getMyProfile,
+        getProfileByUsername,
         listProjects,
         saveProject,
         loadProject,
         deleteProject,
+        updateProjectMetadata,
+        getProfiles,
+        listPublishedProjects,
+        listPublishedByUser,
+        loadPublishedProject,
+        searchProjects,
+        searchUsers,
+        recordActivity,
         compress,
         decompress,
     };

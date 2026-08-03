@@ -279,6 +279,7 @@ window.PythonEngine = {
         if (this.suppressChanges) return;
         this.dirty = true;
         this.updateSaveStatus("Unsaved changes");
+        document.dispatchEvent(new CustomEvent("pyblocks:project-changed"));
         clearTimeout(this.autosaveTimer);
         this.autosaveTimer = setTimeout(() => this.saveAutosave(), 350);
     },
@@ -347,6 +348,11 @@ window.PythonEngine = {
         this.dirty = !saved;
         this.updateSaveStatus(saved ? "Saved project" : "Unsaved changes");
         this.updatePreview();
+        document.dispatchEvent(
+            new CustomEvent("pyblocks:project-loaded", {
+                detail: { name: this.projectName },
+            }),
+        );
     },
 
     newProject() {
@@ -362,6 +368,11 @@ window.PythonEngine = {
         this.setLibraries([], { markDirty: false });
         this.dirty = false;
         this.updateSaveStatus("New project");
+        document.dispatchEvent(
+            new CustomEvent("pyblocks:project-loaded", {
+                detail: { name: this.projectName, isNew: true },
+            }),
+        );
         localStorage.removeItem(this.storageKey);
         this.clearConsole();
     },
