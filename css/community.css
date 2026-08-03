@@ -13,6 +13,32 @@
     padding: 56px 0 100px;
 }
 
+.discover-hero {
+    max-width: 820px;
+    padding: 54px 0 30px;
+}
+
+.discover-hero h1 {
+    margin: 0;
+    color: #e2e7ff;
+    font-size: clamp(2.8rem, 7vw, 6.2rem);
+    line-height: 0.95;
+    letter-spacing: -0.06em;
+}
+
+.discover-hero > p:last-child,
+.search-status {
+    color: var(--muted);
+}
+
+.public-result-switch {
+    margin-top: 20px;
+}
+
+.public-search-results {
+    margin-top: 16px;
+}
+
 .profile-hero {
     min-height: 250px;
     padding: clamp(28px, 5vw, 58px);

@@ -73,6 +73,38 @@ test("Python import is absent and cloud projects compress losslessly", async ({
     );
 });
 
+test("public navigation search works without signing in", async ({
+    page,
+}, testInfo) => {
+    test.skip(
+        !testInfo.project.name.includes("chromium-desktop"),
+        "Public discovery behavior is engine-independent.",
+    );
+    await page.route("**/rest/v1/**", (route) =>
+        route.fulfill({
+            status: 200,
+            contentType: "application/json",
+            body: "[]",
+        }),
+    );
+    await page.goto("/index.html");
+    const navSearch = page
+        .getByRole("search")
+        .getByPlaceholder("Search projects or users…");
+    await expect(navSearch).toBeVisible();
+    await navSearch.fill("loops");
+    await page
+        .getByRole("search")
+        .getByRole("button", { name: "Search" })
+        .click();
+    await expect(page).toHaveURL(/discover\.html\?q=loops/);
+    await expect(
+        page.getByRole("group", { name: "Search result type" }),
+    ).toBeVisible();
+    await expect(page.getByRole("button", { name: "Projects" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Users" })).toBeVisible();
+});
+
 test("runtime executes Python semantics, input, errors, concurrency, and termination", async ({
     page,
 }) => {

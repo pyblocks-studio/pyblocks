@@ -288,11 +288,77 @@
         ].join("\n");
     }
 
+    async function initDiscover() {
+        const params = new window.URLSearchParams(window.location.search);
+        const query = params.get("q")?.trim() || "";
+        let resultType = params.get("type") === "users" ? "users" : "projects";
+        const input = document.getElementById("public-query");
+        const results = document.getElementById("public-search-results");
+        const searchStatus = document.getElementById("public-search-status");
+        input.value = query;
+
+        async function render() {
+            results.replaceChildren(empty("Searching…"));
+            document
+                .querySelectorAll("[data-result-type]")
+                .forEach((button) =>
+                    button.classList.toggle(
+                        "is-active",
+                        button.dataset.resultType === resultType,
+                    ),
+                );
+            if (resultType === "users") {
+                const users = query
+                    ? await window.PyBlocksCloud.searchUsers(query)
+                    : [];
+                results.replaceChildren();
+                if (!users.length)
+                    results.append(
+                        empty(
+                            query
+                                ? "No users matched your search."
+                                : "Enter a username to search creators.",
+                        ),
+                    );
+                users.forEach((profile) =>
+                    results.append(profileCard(profile)),
+                );
+                searchStatus.textContent = query
+                    ? `${users.length} user result${users.length === 1 ? "" : "s"}`
+                    : "Search creators by username";
+                return;
+            }
+            const projects = query
+                ? await window.PyBlocksCloud.searchProjects(query)
+                : await window.PyBlocksCloud.listPublishedProjects(20);
+            await renderPublished(results, projects);
+            searchStatus.textContent = query
+                ? `${projects.length} project result${projects.length === 1 ? "" : "s"}`
+                : "Showing recent published projects";
+        }
+
+        document.querySelectorAll("[data-result-type]").forEach((button) => {
+            button.addEventListener("click", () => {
+                resultType = button.dataset.resultType;
+                params.set("type", resultType);
+                if (query) params.set("q", query);
+                window.history.replaceState(
+                    null,
+                    "",
+                    `discover.html?${params.toString()}`,
+                );
+                void render();
+            });
+        });
+        await render();
+    }
+
     Promise.resolve()
         .then(() => {
             if (page === "dashboard") return initDashboard();
             if (page === "profile") return initProfile();
             if (page === "project") return initProject();
+            if (page === "discover") return initDiscover();
             return null;
         })
         .catch((error) => {

@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta
+            http-equiv="Content-Security-Policy"
+            content="default-src 'self'; script-src 'self'; connect-src 'self' https://*.supabase.co; style-src 'self' 'unsafe-inline'; img-src 'self' data:; object-src 'none'; base-uri 'self'"
+        />
+        <meta name="referrer" content="no-referrer" />
+        <title>Discover — PyBlocks</title>
+        <link rel="icon" href="assets/images/brand-icons/favicon.svg" />
+        <link rel="stylesheet" href="css/home.css" />
+        <link rel="stylesheet" href="css/community.css" />
+    </head>
+    <body class="community-page" data-page="discover">
+        <nav class="site-nav">
+            <a class="brand" href="index.html"
+                ><span class="brand-mark">Py</span>PyBlocks</a
+            >
+            <form
+                id="public-search"
+                class="nav-search"
+                action="discover.html"
+                method="get"
+                role="search"
+            >
+                <label class="sr-only" for="public-query"
+                    >Search projects or users</label
+                >
+                <input
+                    id="public-query"
+                    name="q"
+                    placeholder="Search projects or users…"
+                    autocomplete="off"
+                />
+                <button type="submit">Search</button>
+            </form>
+            <div class="nav-actions">
+                <a class="nav-link nav-create" href="editor.html">Create</a>
+                <a class="nav-link" href="index.html">Home</a>
+            </div>
+        </nav>
+        <main class="community-shell">
+            <section class="discover-hero">
+                <p class="eyebrow">PyBlocks community</p>
+                <h1>Discover creators and projects.</h1>
+                <p>
+                    Browse public work without an account. Search by project
+                    title or creator username.
+                </p>
+            </section>
+            <div
+                class="result-switch public-result-switch"
+                role="group"
+                aria-label="Search result type"
+            >
+                <button
+                    class="is-active"
+                    type="button"
+                    data-result-type="projects"
+                >
+                    Projects
+                </button>
+                <button type="button" data-result-type="users">Users</button>
+            </div>
+            <p id="public-search-status" class="search-status" role="status">
+                Showing recent published projects
+            </p>
+            <section
+                id="public-search-results"
+                class="project-grid public-search-results"
+                aria-label="Search results"
+            ></section>
+        </main>
+        <script src="js/cloud-config.js"></script>
+        <script src="js/project-format.js"></script>
+        <script src="js/cloud-service.js"></script>
+        <script src="js/community.js"></script>
+    </body>
+</html>

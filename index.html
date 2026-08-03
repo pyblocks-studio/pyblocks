@@ -26,7 +26,25 @@
             <a class="brand" href="index.html"
                 ><span class="brand-mark">Py</span>PyBlocks</a
             >
+            <form
+                class="nav-search"
+                action="discover.html"
+                method="get"
+                role="search"
+            >
+                <label class="sr-only" for="home-nav-search"
+                    >Search projects or users</label
+                >
+                <input
+                    id="home-nav-search"
+                    name="q"
+                    placeholder="Search projects or users…"
+                    autocomplete="off"
+                />
+                <button type="submit" aria-label="Search">Search</button>
+            </form>
             <div class="nav-actions">
+                <a class="nav-link" href="discover.html">Discover</a>
                 <a class="nav-link nav-create" href="editor.html">Create</a>
                 <a class="nav-link" href="license.html">License</a>
                 <button
