@@ -67,6 +67,11 @@
         return node;
     }
 
+    function remixCredit(project) {
+        if (!project.remixed_from_project_id) return "";
+        return `Thanks to @${project.remixed_from_username} for the original project: ${project.remixed_from_name}`;
+    }
+
     function profileCard(profile) {
         const link = document.createElement("a");
         link.className = `profile-card${isOwner(profile) ? " owner-card" : ""}`;
@@ -111,7 +116,15 @@
             project.published_at || project.updated_at,
         ).toLocaleDateString();
         footer.append(authorLink, date);
-        article.append(heading, description, footer);
+        article.append(heading, description);
+        const credit = remixCredit(project);
+        if (credit) {
+            const tag = document.createElement("p");
+            tag.className = "remix-credit compact";
+            tag.textContent = `REMIX · ${credit}`;
+            article.append(tag);
+        }
+        article.append(footer);
         return article;
     }
 
@@ -378,6 +391,12 @@
         document.getElementById("project-detail-description").textContent =
             record.description ||
             "A visual Python project built with PyBlocks.";
+        const remixCreditNode = document.getElementById("project-remix-credit");
+        const credit = remixCredit(record);
+        if (credit) {
+            remixCreditNode.textContent = `REMIX · ${credit}`;
+            remixCreditNode.hidden = false;
+        }
         document.getElementById("project-detail-code").textContent = [
             `# ${record.project.name}`,
             record.project.libraries?.length
@@ -385,6 +404,8 @@
                 : "# No extra libraries",
             "# Open this creator's published project in PyBlocks.",
         ].join("\n");
+        document.getElementById("remix-project-btn").href =
+            `editor.html?remix=${encodeURIComponent(record.id)}`;
     }
 
     async function initDiscover() {

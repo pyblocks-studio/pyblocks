@@ -12,6 +12,7 @@ window.PythonEngine = {
     storageKey: "pyblocks-autosave-v1",
     projectName: "Untitled",
     projectSettings: { executionTimeoutMs: 10_000 },
+    remixAttribution: null,
 
     init(workspace) {
         this.workspace = workspace;
@@ -290,6 +291,7 @@ window.PythonEngine = {
             [...this.selectedLibraries],
             this.projectName,
             this.projectSettings,
+            this.remixAttribution,
         );
     },
 
@@ -344,6 +346,7 @@ window.PythonEngine = {
         }
         this.projectName = valid.name;
         this.projectSettings = valid.settings;
+        this.remixAttribution = valid.attribution;
         this.setLibraries(valid.libraries, { markDirty: false });
         this.dirty = !saved;
         this.updateSaveStatus(saved ? "Saved project" : "Unsaved changes");
@@ -365,6 +368,7 @@ window.PythonEngine = {
         }
         this.projectName = "Untitled";
         this.projectSettings = { executionTimeoutMs: 10_000 };
+        this.remixAttribution = null;
         this.setLibraries([], { markDirty: false });
         this.dirty = false;
         this.updateSaveStatus("New project");

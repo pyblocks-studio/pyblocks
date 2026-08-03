@@ -10,6 +10,7 @@
     const MAX_FILE_BYTES = 5 * 1024 * 1024;
     const FORBIDDEN_KEYS = new Set(["__proto__", "prototype", "constructor"]);
     const LIBRARY_PATTERN = /^[A-Za-z_][A-Za-z0-9_]*$/;
+    const USERNAME_PATTERN = /^[A-Za-z0-9_]{3,32}$/;
 
     function assertSafeTree(value, depth = 0) {
         if (depth > 100) throw new Error("Project data is nested too deeply.");
@@ -32,6 +33,22 @@
                 ),
             ),
         ].sort();
+    }
+
+    function normalizeAttribution(attribution) {
+        if (!attribution) return null;
+        const projectId = String(attribution.projectId || "");
+        const projectName = String(attribution.projectName || "").slice(0, 120);
+        const username = String(attribution.username || "");
+        if (
+            !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+                projectId,
+            ) ||
+            !projectName ||
+            !USERNAME_PATTERN.test(username)
+        )
+            throw new Error("Project remix attribution is invalid.");
+        return { projectId, projectName, username };
     }
 
     function validate(project) {
@@ -61,6 +78,7 @@
                     ),
                 ),
             },
+            attribution: normalizeAttribution(project.attribution),
             workspace: project.workspace,
         };
     }
@@ -96,7 +114,13 @@
         return validate(migrate(data));
     }
 
-    function create(workspace, libraries, name = "Untitled", settings = {}) {
+    function create(
+        workspace,
+        libraries,
+        name = "Untitled",
+        settings = {},
+        attribution = null,
+    ) {
         return validate({
             format: FORMAT,
             version: VERSION,
@@ -104,6 +128,7 @@
             libraries,
             workspace,
             settings,
+            attribution,
         });
     }
 
@@ -113,6 +138,7 @@
         MAX_FILE_BYTES,
         LIBRARY_PATTERN,
         normalizeLibraries,
+        normalizeAttribution,
         validate,
         migrate,
         parse,

@@ -51,6 +51,32 @@ test("requires Blockly workspace state", () => {
     assert.throws(() => format.validate(project), /workspace data is missing/);
 });
 
+test("preserves valid remix attribution in project files", () => {
+    const project = valid();
+    project.attribution = {
+        projectId: "9c175b4a-b78e-4f13-9c83-e27d4dd59a8c",
+        projectName: "Original loops",
+        username: "creator_1",
+    };
+    assert.deepEqual(
+        format.parse(JSON.stringify(project)).attribution,
+        project.attribution,
+    );
+});
+
+test("rejects incomplete or unsafe remix attribution", () => {
+    const project = valid();
+    project.attribution = {
+        projectId: "not-a-project-id",
+        projectName: "Original",
+        username: "bad user",
+    };
+    assert.throws(
+        () => format.validate(project),
+        /remix attribution is invalid/,
+    );
+});
+
 test("migrates the legacy version-zero project envelope", () => {
     const project = valid();
     project.version = 0;

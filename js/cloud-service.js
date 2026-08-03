@@ -6,6 +6,8 @@ window.PyBlocksCloud = (() => {
         "user_id,username,display_name,avatar_path,role,active_seconds,joined_at,updated_at";
     const AVATAR_BUCKET = "pyblocks-avatars";
     const MAX_AVATAR_BYTES = 2 * 1024 * 1024;
+    const REMIX_FIELDS =
+        "remixed_from_project_id,remixed_from_name,remixed_from_username";
     const config = window.PyBlocksCloudConfig || {};
     let session = readSession();
 
@@ -309,7 +311,7 @@ window.PyBlocksCloud = (() => {
 
     async function listProjects() {
         return request(
-            "/rest/v1/pyblocks_projects?select=id,name,description,is_published,published_at,updated_at,uncompressed_bytes&order=updated_at.desc",
+            `/rest/v1/pyblocks_projects?select=id,name,description,is_published,published_at,updated_at,uncompressed_bytes,${REMIX_FIELDS}&order=updated_at.desc`,
             { method: "GET" },
             true,
         );
@@ -329,6 +331,10 @@ window.PyBlocksCloud = (() => {
             is_published: published,
             published_at: published ? new Date().toISOString() : null,
             updated_at: new Date().toISOString(),
+            remixed_from_project_id:
+                options.remixAttribution?.projectId || null,
+            remixed_from_name: options.remixAttribution?.projectName || null,
+            remixed_from_username: options.remixAttribution?.username || null,
         };
         if (options.id) {
             const rows = await request(
@@ -411,21 +417,21 @@ window.PyBlocksCloud = (() => {
 
     async function listPublishedProjects(limit = 20) {
         return request(
-            `/rest/v1/pyblocks_projects?is_published=eq.true&select=id,user_id,name,description,published_at,updated_at&order=updated_at.desc&limit=${Math.min(60, Math.max(1, limit))}`,
+            `/rest/v1/pyblocks_projects?is_published=eq.true&select=id,user_id,name,description,published_at,updated_at,${REMIX_FIELDS}&order=updated_at.desc&limit=${Math.min(60, Math.max(1, limit))}`,
             { method: "GET" },
         );
     }
 
     async function listPublishedByUser(userId) {
         return request(
-            `/rest/v1/pyblocks_projects?user_id=eq.${encodeURIComponent(userId)}&is_published=eq.true&select=id,user_id,name,description,published_at,updated_at&order=updated_at.desc`,
+            `/rest/v1/pyblocks_projects?user_id=eq.${encodeURIComponent(userId)}&is_published=eq.true&select=id,user_id,name,description,published_at,updated_at,${REMIX_FIELDS}&order=updated_at.desc`,
             { method: "GET" },
         );
     }
 
     async function loadPublishedProject(id) {
         const rows = await request(
-            `/rest/v1/pyblocks_projects?id=eq.${encodeURIComponent(id)}&is_published=eq.true&select=id,user_id,name,description,payload,encoding,published_at,updated_at&limit=1`,
+            `/rest/v1/pyblocks_projects?id=eq.${encodeURIComponent(id)}&is_published=eq.true&select=id,user_id,name,description,payload,encoding,published_at,updated_at,${REMIX_FIELDS}&limit=1`,
             { method: "GET" },
         );
         if (!rows?.length) throw new Error("Published project was not found.");
@@ -441,7 +447,7 @@ window.PyBlocksCloud = (() => {
     async function searchProjects(query) {
         const pattern = `*${String(query).replace(/[%*,()]/g, "")}*`;
         return request(
-            `/rest/v1/pyblocks_projects?is_published=eq.true&name=ilike.${encodeURIComponent(pattern)}&select=id,user_id,name,description,published_at,updated_at&order=updated_at.desc&limit=30`,
+            `/rest/v1/pyblocks_projects?is_published=eq.true&name=ilike.${encodeURIComponent(pattern)}&select=id,user_id,name,description,published_at,updated_at,${REMIX_FIELDS}&order=updated_at.desc&limit=30`,
             { method: "GET" },
         );
     }

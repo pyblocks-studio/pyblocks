@@ -357,6 +357,23 @@
     color: var(--muted);
 }
 
+.remix-credit {
+    width: fit-content;
+    padding: 9px 12px;
+    border: 1px solid var(--purple);
+    background: rgb(187 154 247 / 10%);
+    color: #d7c2ff;
+    font:
+        800 0.78rem Consolas,
+        monospace;
+    line-height: 1.45;
+}
+
+.remix-credit.compact {
+    margin: 16px 0 0;
+    font-size: 0.7rem;
+}
+
 .project-code-card {
     margin: 38px 0;
     border: 1px solid var(--border);

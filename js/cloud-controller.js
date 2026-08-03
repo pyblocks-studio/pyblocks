@@ -93,7 +93,17 @@ window.PyBlocksCloudController = (() => {
             const loaded = await window.PyBlocksCloud.loadProject(project.id);
             currentProjectId = project.id;
             currentPublished = Boolean(project.is_published);
-            window.PythonEngine.loadProject(loaded, { saved: true });
+            const attribution = project.remixed_from_project_id
+                ? {
+                      projectId: project.remixed_from_project_id,
+                      projectName: project.remixed_from_name,
+                      username: project.remixed_from_username,
+                  }
+                : null;
+            window.PythonEngine.loadProject(
+                { ...loaded, attribution },
+                { saved: true },
+            );
             window.PythonEngine.saveAutosave();
             close();
         } catch (error) {
@@ -125,10 +135,12 @@ window.PyBlocksCloudController = (() => {
         if (!quiet) setStatus("Compressing and saving project…");
         try {
             await window.PyBlocksCloud.ensureProfile();
-            const saved = await window.PyBlocksCloud.saveProject(
-                window.PythonEngine.buildProject(),
-                { id: currentProjectId, isPublished: currentPublished },
-            );
+            const project = window.PythonEngine.buildProject();
+            const saved = await window.PyBlocksCloud.saveProject(project, {
+                id: currentProjectId,
+                isPublished: currentPublished,
+                remixAttribution: project.attribution,
+            });
             currentProjectId = saved?.id || currentProjectId;
             window.PythonEngine.dirty = false;
             window.PythonEngine.updateSaveStatus("Saved to cloud");
@@ -266,7 +278,41 @@ window.PyBlocksCloudController = (() => {
         const requestedProjectId = new window.URLSearchParams(
             window.location.search,
         ).get("cloud");
-        if (requestedProjectId && window.PyBlocksCloud.currentUser()) {
+        const requestedRemixId = new window.URLSearchParams(
+            window.location.search,
+        ).get("remix");
+        if (requestedRemixId) {
+            void window.PyBlocksCloud.loadPublishedProject(requestedRemixId)
+                .then(async (record) => {
+                    const [author] = await window.PyBlocksCloud.getProfiles([
+                        record.user_id,
+                    ]);
+                    const source = record.remixed_from_project_id
+                        ? {
+                              projectId: record.remixed_from_project_id,
+                              projectName: record.remixed_from_name,
+                              username: record.remixed_from_username,
+                          }
+                        : {
+                              projectId: record.id,
+                              projectName: record.name,
+                              username: author?.username || "unknown",
+                          };
+                    currentProjectId = null;
+                    currentPublished = false;
+                    const remix = {
+                        ...record.project,
+                        name: `Remix of ${record.name}`.slice(0, 120),
+                        attribution: source,
+                    };
+                    window.PythonEngine.loadProject(remix, { saved: false });
+                    window.PythonEngine.saveAutosave();
+                    window.PythonEngine.showNotice(
+                        `Remixing ${record.name} with credit to @${source.username}.`,
+                    );
+                })
+                .catch((error) => window.PythonEngine.showError(error.message));
+        } else if (requestedProjectId && window.PyBlocksCloud.currentUser()) {
             void window.PyBlocksCloud.listProjects()
                 .then((projects) =>
                     projects.find(
