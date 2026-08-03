@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta
             http-equiv="Content-Security-Policy"
-            content="default-src 'self'; script-src 'self'; connect-src 'self' https://*.supabase.co; style-src 'self' 'unsafe-inline'; img-src 'self' data:; object-src 'none'; base-uri 'self'"
+            content="default-src 'self'; script-src 'self'; connect-src 'self' https://*.supabase.co; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://*.supabase.co; object-src 'none'; base-uri 'self'"
         />
         <meta name="referrer" content="no-referrer" />
         <title>Profile — PyBlocks</title>
@@ -25,10 +25,20 @@
         </nav>
         <main class="community-shell">
             <section id="profile-hero" class="profile-hero">
-                <div>
-                    <p class="eyebrow">PyBlocks creator</p>
-                    <h1 id="public-username">Loading…</h1>
-                    <p id="public-joined"></p>
+                <div class="profile-identity">
+                    <div class="profile-avatar" data-profile-avatar>
+                        <img alt="" data-avatar-image hidden />
+                        <span class="default-avatar" aria-hidden="true"></span>
+                    </div>
+                    <div>
+                        <p id="public-title" class="eyebrow">Loading…</p>
+                        <h1 id="public-display-name">Loading…</h1>
+                        <strong
+                            id="public-username"
+                            class="profile-handle"
+                        ></strong>
+                        <p id="public-joined"></p>
+                    </div>
                 </div>
                 <span id="owner-badge" class="owner-badge" hidden>OWNER</span>
             </section>

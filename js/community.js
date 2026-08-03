@@ -9,6 +9,48 @@
     const isOwner = (profile) =>
         profile?.role === "owner" ||
         profile?.username?.toLowerCase() === "goldl00x";
+    const EXPERIENCED_AGE_MS = 30 * 24 * 60 * 60 * 1000;
+    const EXPERIENCED_ACTIVE_SECONDS = 2 * 60 * 60;
+    const EXPERIENCED_PROJECTS = 5;
+
+    function profileTitle(profile, publishedCount) {
+        if (isOwner(profile)) return "PYBLOCKS CREATOR";
+        const oldEnough =
+            Date.now() - new Date(profile.joined_at).getTime() >=
+            EXPERIENCED_AGE_MS;
+        if (
+            oldEnough &&
+            Number(profile.active_seconds) >= EXPERIENCED_ACTIVE_SECONDS &&
+            publishedCount >= EXPERIENCED_PROJECTS
+        )
+            return "EXPERIENCED";
+        return "NEWCOMER";
+    }
+
+    function showAvatar(container, profile) {
+        const image = container?.querySelector("[data-avatar-image]");
+        const fallback = container?.querySelector(".default-avatar");
+        const url = window.PyBlocksCloud.avatarUrl(profile);
+        if (!image || !fallback || !url) return;
+        image.alt = `${profile.display_name || profile.username}'s profile picture`;
+        image.addEventListener(
+            "load",
+            () => {
+                image.hidden = false;
+                fallback.hidden = true;
+            },
+            { once: true },
+        );
+        image.addEventListener(
+            "error",
+            () => {
+                image.hidden = true;
+                fallback.hidden = false;
+            },
+            { once: true },
+        );
+        image.src = `${url}?v=${encodeURIComponent(profile.updated_at || profile.avatar_path)}`;
+    }
 
     function formatDuration(seconds) {
         const minutes = Math.floor(Number(seconds || 0) / 60);
@@ -30,9 +72,9 @@
         link.className = `profile-card${isOwner(profile) ? " owner-card" : ""}`;
         link.href = `profile.html?user=${encodeURIComponent(profile.username)}`;
         const title = document.createElement("strong");
-        title.textContent = `@${profile.username}`;
+        title.textContent = profile.display_name || profile.username;
         const meta = document.createElement("span");
-        meta.textContent = `Joined ${new Date(profile.joined_at).toLocaleDateString()}`;
+        meta.textContent = `@${profile.username} · Joined ${new Date(profile.joined_at).toLocaleDateString()}`;
         link.append(title, meta);
         if (isOwner(profile)) {
             const badge = document.createElement("b");
@@ -149,8 +191,18 @@
         }
         const profile = await window.PyBlocksCloud.ensureProfile();
         const projects = await window.PyBlocksCloud.listProjects();
-        const heading = document.getElementById("dashboard-username");
-        heading.textContent = `@${profile.username}`;
+        const publishedCount = projects.filter(
+            (project) => project.is_published,
+        ).length;
+        document.getElementById("dashboard-display-name").textContent =
+            profile.display_name || profile.username;
+        document.getElementById("dashboard-username").textContent =
+            `@${profile.username}`;
+        document.getElementById("dashboard-title").textContent = profileTitle(
+            profile,
+            publishedCount,
+        );
+        showAvatar(document.querySelector("[data-profile-avatar]"), profile);
         if (isOwner(profile)) {
             document
                 .getElementById("profile-hero")
@@ -158,7 +210,7 @@
             const badge = document.createElement("span");
             badge.className = "owner-badge";
             badge.textContent = "OWNER";
-            heading.after(badge);
+            document.getElementById("dashboard-username").after(badge);
         }
         document.getElementById("stat-active").textContent = formatDuration(
             profile.active_seconds,
@@ -169,6 +221,43 @@
         document.getElementById("stat-published").textContent = projects.filter(
             (project) => project.is_published,
         ).length;
+
+        const settingsForm = document.getElementById("profile-settings-form");
+        const displayNameInput = document.getElementById(
+            "profile-display-name",
+        );
+        const avatarInput = document.getElementById("profile-avatar-file");
+        const settingsStatus = document.getElementById(
+            "profile-settings-status",
+        );
+        displayNameInput.value = profile.display_name || profile.username;
+        settingsForm.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            const button = settingsForm.querySelector("button[type='submit']");
+            button.disabled = true;
+            settingsStatus.textContent = "Saving profile…";
+            try {
+                let updated = await window.PyBlocksCloud.updateProfile(
+                    displayNameInput.value,
+                );
+                if (avatarInput.files[0])
+                    updated = await window.PyBlocksCloud.uploadAvatar(
+                        avatarInput.files[0],
+                    );
+                document.getElementById("dashboard-display-name").textContent =
+                    updated.display_name;
+                showAvatar(
+                    document.querySelector("[data-profile-avatar]"),
+                    updated,
+                );
+                avatarInput.value = "";
+                settingsStatus.textContent = "Profile saved.";
+            } catch (error) {
+                settingsStatus.textContent = error.message;
+            } finally {
+                button.disabled = false;
+            }
+        });
 
         const myProjects = document.getElementById("my-projects");
         const refreshMine = async () => {
@@ -246,11 +335,21 @@
                 "User not found";
             return;
         }
-        document.title = `@${profile.username} — PyBlocks`;
+        const projects = await window.PyBlocksCloud.listPublishedByUser(
+            profile.user_id,
+        );
+        document.title = `${profile.display_name || profile.username} — PyBlocks`;
+        document.getElementById("public-display-name").textContent =
+            profile.display_name || profile.username;
         document.getElementById("public-username").textContent =
             `@${profile.username}`;
+        document.getElementById("public-title").textContent = profileTitle(
+            profile,
+            projects.length,
+        );
         document.getElementById("public-joined").textContent =
             `Joined ${new Date(profile.joined_at).toLocaleDateString()} · ${formatDuration(profile.active_seconds)} active`;
+        showAvatar(document.querySelector("[data-profile-avatar]"), profile);
         if (isOwner(profile)) {
             document
                 .getElementById("profile-hero")
@@ -259,7 +358,7 @@
         }
         await renderPublished(
             document.getElementById("public-projects"),
-            await window.PyBlocksCloud.listPublishedByUser(profile.user_id),
+            projects,
         );
     }
 

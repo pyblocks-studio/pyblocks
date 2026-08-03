@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta
             http-equiv="Content-Security-Policy"
-            content="default-src 'self'; script-src 'self'; connect-src 'self' https://*.supabase.co; style-src 'self' 'unsafe-inline'; img-src 'self' data:; object-src 'none'; base-uri 'self'"
+            content="default-src 'self'; script-src 'self'; connect-src 'self' https://*.supabase.co; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://*.supabase.co; object-src 'none'; base-uri 'self'"
         />
         <meta name="referrer" content="no-referrer" />
         <title>Dashboard — PyBlocks</title>
@@ -27,14 +27,64 @@
         </nav>
         <main class="community-shell">
             <section id="profile-hero" class="profile-hero">
-                <div>
-                    <p class="eyebrow">Your dashboard</p>
-                    <h1 id="dashboard-username">Loading…</h1>
-                    <p>
-                        Build, publish, and keep track of your PyBlocks journey.
-                    </p>
+                <div class="profile-identity">
+                    <div class="profile-avatar" data-profile-avatar>
+                        <img alt="" data-avatar-image hidden />
+                        <span class="default-avatar" aria-hidden="true"></span>
+                    </div>
+                    <div>
+                        <p id="dashboard-title" class="eyebrow">
+                            Your dashboard
+                        </p>
+                        <h1 id="dashboard-display-name">Loading…</h1>
+                        <strong
+                            id="dashboard-username"
+                            class="profile-handle"
+                        ></strong>
+                        <p>
+                            Build, publish, and keep track of your PyBlocks
+                            journey.
+                        </p>
+                    </div>
                 </div>
                 <a class="primary-cta" href="editor.html">New project →</a>
+            </section>
+            <section class="dashboard-section profile-settings">
+                <div class="section-row">
+                    <div>
+                        <p class="eyebrow">Public profile</p>
+                        <h2>Make it yours</h2>
+                    </div>
+                    <span id="profile-settings-status" role="status"></span>
+                </div>
+                <form id="profile-settings-form" class="profile-settings-form">
+                    <label>
+                        Display name
+                        <input
+                            id="profile-display-name"
+                            maxlength="40"
+                            required
+                            autocomplete="nickname"
+                        />
+                    </label>
+                    <label class="avatar-upload">
+                        Profile picture
+                        <input
+                            id="profile-avatar-file"
+                            type="file"
+                            accept="image/png,image/jpeg,image/webp"
+                        />
+                    </label>
+                    <p class="profile-safety-notice">
+                        Keep your picture appropriate for everyone. Do not
+                        upload hateful, sexual, violent, or personally
+                        identifying content. Images must be PNG, JPEG, or WebP
+                        and no larger than 2 MB.
+                    </p>
+                    <button class="compact-action" type="submit">
+                        Save profile
+                    </button>
+                </form>
             </section>
             <section class="stats-grid" aria-label="Account statistics">
                 <article>

@@ -2,6 +2,10 @@
 
 window.PyBlocksCloud = (() => {
     const SESSION_KEY = "pyblocks-cloud-session-v1";
+    const PROFILE_FIELDS =
+        "user_id,username,display_name,avatar_path,role,active_seconds,joined_at,updated_at";
+    const AVATAR_BUCKET = "pyblocks-avatars";
+    const MAX_AVATAR_BYTES = 2 * 1024 * 1024;
     const config = window.PyBlocksCloudConfig || {};
     let session = readSession();
 
@@ -71,7 +75,11 @@ window.PyBlocksCloud = (() => {
                 throw new Error("Sign in to use cloud projects.");
             headers.set("Authorization", `Bearer ${session.access_token}`);
         }
-        if (options.body && !headers.has("Content-Type"))
+        if (
+            typeof options.body === "string" &&
+            options.body &&
+            !headers.has("Content-Type")
+        )
             headers.set("Content-Type", "application/json");
         const response = await fetch(`${config.supabaseUrl}${path}`, {
             ...options,
@@ -141,7 +149,7 @@ window.PyBlocksCloud = (() => {
         const user = currentUser();
         if (!user) throw new Error("Sign in to continue.");
         const existing = await request(
-            `/rest/v1/pyblocks_profiles?user_id=eq.${encodeURIComponent(user.id)}&select=user_id,username,role,active_seconds,joined_at`,
+            `/rest/v1/pyblocks_profiles?user_id=eq.${encodeURIComponent(user.id)}&select=${PROFILE_FIELDS}`,
             { method: "GET" },
             true,
         );
@@ -156,6 +164,7 @@ window.PyBlocksCloud = (() => {
                     username: user.username
                         .replace(/[^A-Za-z0-9_]/g, "_")
                         .slice(0, 32),
+                    display_name: user.username.slice(0, 40),
                 }),
             },
             true,
@@ -169,8 +178,72 @@ window.PyBlocksCloud = (() => {
 
     async function getProfileByUsername(username) {
         const rows = await request(
-            `/rest/v1/pyblocks_profiles?username=ilike.${encodeURIComponent(username)}&select=user_id,username,role,active_seconds,joined_at&limit=1`,
+            `/rest/v1/pyblocks_profiles?username=ilike.${encodeURIComponent(username)}&select=${PROFILE_FIELDS}&limit=1`,
             { method: "GET" },
+        );
+        return rows?.[0] || null;
+    }
+
+    function avatarUrl(profile) {
+        if (!profile?.avatar_path) return "";
+        return `${config.supabaseUrl}/storage/v1/object/public/${AVATAR_BUCKET}/${profile.avatar_path}`;
+    }
+
+    async function updateProfile(displayName) {
+        const name = String(displayName || "")
+            .trim()
+            .slice(0, 40);
+        if (!name) throw new Error("Display name cannot be empty.");
+        const user = currentUser();
+        if (!user) throw new Error("Sign in to update your profile.");
+        const rows = await request(
+            `/rest/v1/pyblocks_profiles?user_id=eq.${encodeURIComponent(user.id)}`,
+            {
+                method: "PATCH",
+                headers: { Prefer: "return=representation" },
+                body: JSON.stringify({
+                    display_name: name,
+                    updated_at: new Date().toISOString(),
+                }),
+            },
+            true,
+        );
+        return rows?.[0] || null;
+    }
+
+    async function uploadAvatar(file) {
+        const allowedTypes = new Set(["image/png", "image/jpeg", "image/webp"]);
+        if (!file || !allowedTypes.has(file.type))
+            throw new Error("Choose a PNG, JPEG, or WebP image.");
+        if (file.size > MAX_AVATAR_BYTES)
+            throw new Error("Profile pictures must be 2 MB or smaller.");
+        const user = currentUser();
+        if (!user) throw new Error("Sign in to upload a profile picture.");
+        const avatarPath = `${user.id}/avatar`;
+        await request(
+            `/storage/v1/object/${AVATAR_BUCKET}/${avatarPath}`,
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": file.type,
+                    "x-upsert": "true",
+                    "cache-control": "3600",
+                },
+                body: file,
+            },
+            true,
+        );
+        const rows = await request(
+            `/rest/v1/pyblocks_profiles?user_id=eq.${encodeURIComponent(user.id)}`,
+            {
+                method: "PATCH",
+                headers: { Prefer: "return=representation" },
+                body: JSON.stringify({
+                    avatar_path: avatarPath,
+                    updated_at: new Date().toISOString(),
+                }),
+            },
+            true,
         );
         return rows?.[0] || null;
     }
@@ -331,7 +404,7 @@ window.PyBlocksCloud = (() => {
         const ids = [...new Set(userIds)].filter(Boolean);
         if (!ids.length) return [];
         return request(
-            `/rest/v1/pyblocks_profiles?user_id=in.(${ids.join(",")})&select=user_id,username,role,active_seconds,joined_at`,
+            `/rest/v1/pyblocks_profiles?user_id=in.(${ids.join(",")})&select=${PROFILE_FIELDS}`,
             { method: "GET" },
         );
     }
@@ -376,7 +449,7 @@ window.PyBlocksCloud = (() => {
     async function searchUsers(query) {
         const pattern = `*${String(query).replace(/[%*,()]/g, "")}*`;
         return request(
-            `/rest/v1/pyblocks_profiles?username=ilike.${encodeURIComponent(pattern)}&select=user_id,username,role,active_seconds,joined_at&order=username.asc&limit=30`,
+            `/rest/v1/pyblocks_profiles?username=ilike.${encodeURIComponent(pattern)}&select=${PROFILE_FIELDS}&order=username.asc&limit=30`,
             { method: "GET" },
         );
     }
@@ -402,6 +475,9 @@ window.PyBlocksCloud = (() => {
         ensureProfile,
         getMyProfile,
         getProfileByUsername,
+        avatarUrl,
+        updateProfile,
+        uploadAvatar,
         listProjects,
         saveProject,
         loadProject,
