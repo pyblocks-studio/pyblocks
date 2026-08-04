@@ -20,6 +20,11 @@ window.PyBlocksAccountPortal = (() => {
               <p id="account-form-status" role="status" aria-live="polite">Passwords are secured by Supabase Auth.</p>
             </form>
           </section>
+        </div>
+        <div id="account-menu" class="account-menu" hidden>
+          <a href="dashboard.html">Dashboard</a>
+          <a href="achievements.html">Achievements</a>
+          <a href="editor.html">New project</a>
         </div>`;
     }
 
@@ -34,7 +39,8 @@ window.PyBlocksAccountPortal = (() => {
     function open() {
         const user = window.PyBlocksCloud.currentUser();
         if (user) {
-            window.location.href = "dashboard.html";
+            const menu = document.getElementById("account-menu");
+            menu.hidden = !menu.hidden;
             return;
         }
         window.PyBlocksDialogs.open(dialog, {

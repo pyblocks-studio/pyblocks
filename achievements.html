@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta
+            http-equiv="Content-Security-Policy"
+            content="default-src 'self'; script-src 'self'; connect-src 'self' https://*.supabase.co; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://*.supabase.co; object-src 'none'; base-uri 'self'"
+        />
+        <title>Achievements — PyBlocks</title>
+        <link rel="icon" href="assets/images/brand-icons/favicon.svg" />
+        <link rel="stylesheet" href="css/home.css" />
+        <link rel="stylesheet" href="css/community.css" />
+    </head>
+    <body class="community-page" data-page="achievements">
+        <nav class="site-nav">
+            <a class="brand" href="index.html"
+                ><span class="brand-mark">Py</span>PyBlocks</a
+            >
+            <div class="nav-actions">
+                <a class="nav-link" href="dashboard.html">Dashboard</a
+                ><a class="nav-link nav-create" href="editor.html">Create</a>
+            </div>
+        </nav>
+        <main class="community-shell">
+            <header class="discover-hero">
+                <p class="eyebrow">Your journey</p>
+                <h1>Achievements</h1>
+                <p>
+                    Complete milestones, collect badges, and unlock profile
+                    banners.
+                </p>
+            </header>
+            <section
+                id="achievement-library"
+                class="achievement-library"
+                aria-live="polite"
+            ></section>
+        </main>
+        <script src="js/cloud-config.js"></script>
+        <script src="js/cloud-service.js"></script>
+        <script src="js/community.js"></script>
+        <script src="js/community-platform.js"></script>
+    </body>
+</html>

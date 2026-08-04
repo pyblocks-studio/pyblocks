@@ -52,15 +52,42 @@
         image.src = `${url}?v=${encodeURIComponent(profile.updated_at || profile.avatar_path)}`;
     }
 
-    function decorateOwnerProfile(hero) {
-        hero.classList.add("owner-profile");
-        if (hero.querySelector(".owner-shooting-star")) return;
-        for (let index = 1; index <= 4; index += 1) {
-            const star = document.createElement("span");
-            star.className = `owner-shooting-star owner-shooting-star-${index}`;
-            star.setAttribute("aria-hidden", "true");
-            hero.append(star);
+    function decorateBanner(hero, bannerId = "default") {
+        [...hero.classList]
+            .filter((name) => name.startsWith("banner-"))
+            .forEach((name) => hero.classList.remove(name));
+        hero.classList.add(`banner-${bannerId || "default"}`);
+        hero.querySelectorAll("[data-banner-decoration]").forEach((node) =>
+            node.remove(),
+        );
+        const count = bannerId === "vip" ? 4 : bannerId === "dynamic" ? 5 : 0;
+        for (let index = 1; index <= count; index += 1) {
+            const decoration = document.createElement("span");
+            decoration.className =
+                bannerId === "vip"
+                    ? `owner-shooting-star owner-shooting-star-${index}`
+                    : `dynamic-ripple dynamic-ripple-${index}`;
+            decoration.dataset.bannerDecoration = "";
+            decoration.setAttribute("aria-hidden", "true");
+            hero.append(decoration);
         }
+        if (bannerId === "circuitry") {
+            const circuit = document.createElement("span");
+            circuit.className = "circuit-pattern";
+            circuit.dataset.bannerDecoration = "";
+            circuit.setAttribute("aria-hidden", "true");
+            hero.append(circuit);
+        }
+    }
+
+    function bannerLabel(container, bannerId) {
+        if (!container) return;
+        const preview = document.createElement("span");
+        preview.className = `banner-mini banner-mini-${bannerId || "default"}`;
+        preview.setAttribute("aria-hidden", "true");
+        const text = document.createElement("strong");
+        text.textContent = `${(bannerId || "default").toUpperCase()} BANNER`;
+        container.replaceChildren(preview, text);
     }
 
     function formatDuration(seconds) {
@@ -228,11 +255,57 @@
         );
         showAvatar(document.querySelector("[data-profile-avatar]"), profile);
         if (isOwner(profile)) {
-            decorateOwnerProfile(document.getElementById("profile-hero"));
+            document
+                .getElementById("profile-hero")
+                .classList.add("owner-profile");
             const badge = document.createElement("span");
             badge.className = "owner-badge";
             badge.textContent = "OWNER";
             document.getElementById("dashboard-username").after(badge);
+        }
+        const equippedBanner =
+            profile.equipped_banner_id ||
+            (isOwner(profile) ? "vip" : "default");
+        decorateBanner(document.getElementById("profile-hero"), equippedBanner);
+        bannerLabel(
+            document.getElementById("dashboard-banner-label"),
+            equippedBanner,
+        );
+        const bannerLibrary = document.getElementById("banner-library");
+        if (bannerLibrary) {
+            const [banners, owned] = await Promise.all([
+                window.PyBlocksCloud.listBanners(),
+                window.PyBlocksCloud.getUserBanners(profile.user_id),
+            ]);
+            const ownedIds = new Set(owned.map((item) => item.banner_id));
+            banners.forEach((banner) => {
+                const card = document.createElement("button");
+                const unlocked = banner.is_public || ownedIds.has(banner.id);
+                card.type = "button";
+                card.disabled = !unlocked;
+                card.className = `banner-card banner-card-${banner.id}`;
+                card.innerHTML = `<span class="banner-card-preview"></span><strong>${banner.name}</strong><small>${unlocked ? banner.description : "Locked — earn or receive this banner."}</small>`;
+                if (equippedBanner === banner.id)
+                    card.classList.add("is-equipped");
+                card.addEventListener("click", async () => {
+                    await window.PyBlocksCloud.equipBanner(banner.id);
+                    decorateBanner(
+                        document.getElementById("profile-hero"),
+                        banner.id,
+                    );
+                    bannerLabel(
+                        document.getElementById("dashboard-banner-label"),
+                        banner.id,
+                    );
+                    bannerLibrary
+                        .querySelectorAll(".is-equipped")
+                        .forEach((item) =>
+                            item.classList.remove("is-equipped"),
+                        );
+                    card.classList.add("is-equipped");
+                });
+                bannerLibrary.append(card);
+            });
         }
         document.getElementById("stat-active").textContent = formatDuration(
             profile.active_seconds,
@@ -373,8 +446,36 @@
             `Joined ${new Date(profile.joined_at).toLocaleDateString()} · ${formatDuration(profile.active_seconds)} active`;
         showAvatar(document.querySelector("[data-profile-avatar]"), profile);
         if (isOwner(profile)) {
-            decorateOwnerProfile(document.getElementById("profile-hero"));
+            document
+                .getElementById("profile-hero")
+                .classList.add("owner-profile");
             document.getElementById("owner-badge").hidden = false;
+        }
+        const equippedBanner =
+            profile.equipped_banner_id ||
+            (isOwner(profile) ? "vip" : "default");
+        decorateBanner(document.getElementById("profile-hero"), equippedBanner);
+        bannerLabel(
+            document.getElementById("public-banner-label"),
+            equippedBanner,
+        );
+        const achievementHost = document.getElementById("public-achievements");
+        if (achievementHost) {
+            const [achievements, earned] = await Promise.all([
+                window.PyBlocksCloud.listAchievements(),
+                window.PyBlocksCloud.getUserAchievements(profile.user_id),
+            ]);
+            const byId = new Map(achievements.map((item) => [item.id, item]));
+            earned.forEach((record) => {
+                const achievement = byId.get(record.achievement_id);
+                if (!achievement) return;
+                const badge = document.createElement("article");
+                badge.className = "achievement-badge earned";
+                badge.innerHTML = `<span>★</span><div><strong>${achievement.name}</strong><small>${achievement.description}</small></div>`;
+                achievementHost.append(badge);
+            });
+            if (!earned.length)
+                achievementHost.append(empty("No achievements earned yet."));
         }
         await renderPublished(
             document.getElementById("public-projects"),
@@ -482,12 +583,41 @@
         await render();
     }
 
+    async function initAchievements() {
+        const user = window.PyBlocksCloud.currentUser();
+        if (!user) {
+            window.location.href = "index.html";
+            return;
+        }
+        const [achievements, earned, banners] = await Promise.all([
+            window.PyBlocksCloud.listAchievements(),
+            window.PyBlocksCloud.getUserAchievements(user.id),
+            window.PyBlocksCloud.listBanners(),
+        ]);
+        const earnedMap = new Map(
+            earned.map((item) => [item.achievement_id, item]),
+        );
+        const bannerMap = new Map(banners.map((item) => [item.id, item]));
+        const host = document.getElementById("achievement-library");
+        achievements.forEach((achievement) => {
+            const record = earnedMap.get(achievement.id);
+            const reward = achievement.reward_banner_id
+                ? `${bannerMap.get(achievement.reward_banner_id)?.name || achievement.reward_banner_id} Banner`
+                : "No banner reward";
+            const card = document.createElement("article");
+            card.className = `achievement-card${record ? " is-earned" : ""}`;
+            card.innerHTML = `<span class="achievement-icon">${record ? "★" : "☆"}</span><div><p class="eyebrow">${record ? `EARNED ${new Date(record.earned_at).toLocaleDateString()}` : "NOT YET EARNED"}</p><h2>${achievement.name}</h2><p>${achievement.description}</p><strong>Reward: ${reward}</strong></div>`;
+            host.append(card);
+        });
+    }
+
     Promise.resolve()
         .then(() => {
             if (page === "dashboard") return initDashboard();
             if (page === "profile") return initProfile();
             if (page === "project") return initProject();
             if (page === "discover") return initDiscover();
+            if (page === "achievements") return initAchievements();
             return null;
         })
         .catch((error) => {

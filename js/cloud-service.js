@@ -3,7 +3,7 @@
 window.PyBlocksCloud = (() => {
     const SESSION_KEY = "pyblocks-cloud-session-v1";
     const PROFILE_FIELDS =
-        "user_id,username,display_name,avatar_path,role,active_seconds,joined_at,updated_at";
+        "user_id,username,display_name,avatar_path,role,active_seconds,joined_at,updated_at,equipped_banner_id";
     const AVATAR_BUCKET = "pyblocks-avatars";
     const MAX_AVATAR_BYTES = 2 * 1024 * 1024;
     const REMIX_FIELDS =
@@ -472,6 +472,133 @@ window.PyBlocksCloud = (() => {
         );
     }
 
+    async function listBanners() {
+        return request(
+            "/rest/v1/pyblocks_banners?select=id,name,description,sort_order,is_public&order=sort_order.asc",
+            { method: "GET" },
+        );
+    }
+
+    async function getUserBanners(userId) {
+        return request(
+            `/rest/v1/pyblocks_user_banners?user_id=eq.${encodeURIComponent(userId)}&select=banner_id,granted_at`,
+            { method: "GET" },
+        );
+    }
+
+    async function equipBanner(bannerId) {
+        const user = currentUser();
+        if (!user) throw new Error("Sign in to equip a banner.");
+        const rows = await request(
+            `/rest/v1/pyblocks_profiles?user_id=eq.${encodeURIComponent(user.id)}`,
+            {
+                method: "PATCH",
+                headers: { Prefer: "return=representation" },
+                body: JSON.stringify({
+                    equipped_banner_id: bannerId,
+                    updated_at: new Date().toISOString(),
+                }),
+            },
+            true,
+        );
+        return rows?.[0] || null;
+    }
+
+    async function listAchievements() {
+        return request(
+            "/rest/v1/pyblocks_achievements?select=id,name,description,reward_banner_id,sort_order&order=sort_order.asc",
+            { method: "GET" },
+        );
+    }
+
+    async function getUserAchievements(userId) {
+        return request(
+            `/rest/v1/pyblocks_user_achievements?user_id=eq.${encodeURIComponent(userId)}&select=achievement_id,earned_at`,
+            { method: "GET" },
+        );
+    }
+
+    async function isAdmin() {
+        if (!currentUser()) return false;
+        return request(
+            "/rest/v1/rpc/pyblocks_is_admin",
+            { method: "POST", body: "{}" },
+            true,
+        );
+    }
+
+    async function listAdmins() {
+        const rows = await request(
+            "/rest/v1/pyblocks_admins?select=user_id,granted_at&order=granted_at.asc",
+            { method: "GET" },
+            true,
+        );
+        const profiles = await getProfiles(rows.map((row) => row.user_id));
+        const profileMap = new Map(
+            profiles.map((profile) => [profile.user_id, profile]),
+        );
+        return rows.map((row) => ({
+            ...row,
+            profile: profileMap.get(row.user_id),
+        }));
+    }
+
+    async function rpc(name, body) {
+        return request(
+            `/rest/v1/rpc/${name}`,
+            { method: "POST", body: JSON.stringify(body || {}) },
+            true,
+        );
+    }
+
+    function grantAdmin(username) {
+        return rpc("pyblocks_grant_admin", { target_username: username });
+    }
+
+    function revokeAdmin(userId) {
+        return rpc("pyblocks_revoke_admin", { target_id: userId });
+    }
+
+    function grantBanner(username, bannerId, audience = "user") {
+        return rpc("pyblocks_grant_banner", {
+            target_username: username,
+            target_banner: bannerId,
+            audience,
+        });
+    }
+
+    function giveAdminGift(username) {
+        return rpc("pyblocks_give_admin_gift", {
+            target_username: username,
+        });
+    }
+
+    async function publishAnnouncement(message) {
+        const user = currentUser();
+        if (!user) throw new Error("Sign in to announce.");
+        await request(
+            "/rest/v1/pyblocks_announcements",
+            {
+                method: "POST",
+                body: JSON.stringify({
+                    message: String(message).trim().slice(0, 500),
+                    author_id: user.id,
+                }),
+            },
+            true,
+        );
+    }
+
+    async function getActiveAnnouncement() {
+        const rows = await request(
+            "/rest/v1/pyblocks_announcements?active=eq.true&select=id,message,author_id,created_at&order=created_at.desc&limit=1",
+            { method: "GET" },
+        );
+        if (!rows?.length) return null;
+        const [author] = await getProfiles([rows[0].author_id]);
+        return { ...rows[0], author };
+    }
+
     return {
         configured,
         currentUser,
@@ -496,6 +623,19 @@ window.PyBlocksCloud = (() => {
         searchProjects,
         searchUsers,
         recordActivity,
+        listBanners,
+        getUserBanners,
+        equipBanner,
+        listAchievements,
+        getUserAchievements,
+        isAdmin,
+        listAdmins,
+        grantAdmin,
+        revokeAdmin,
+        grantBanner,
+        giveAdminGift,
+        publishAnnouncement,
+        getActiveAnnouncement,
         compress,
         decompress,
     };

@@ -1,0 +1,227 @@
+"use strict";
+
+(() => {
+    const cloud = window.PyBlocksCloud;
+    if (!cloud?.configured()) return;
+    let announcementId = null;
+    let adminOpen = false;
+
+    function make(tag, className, text) {
+        const node = document.createElement(tag);
+        if (className) node.className = className;
+        if (text) node.textContent = text;
+        return node;
+    }
+
+    async function refreshAnnouncement() {
+        try {
+            const announcement = await cloud.getActiveAnnouncement();
+            if (!announcement) {
+                document.getElementById("global-announcement")?.remove();
+                announcementId = null;
+                return;
+            }
+            if (announcement.id === announcementId) return;
+            announcementId = announcement.id;
+            let bar = document.getElementById("global-announcement");
+            if (!bar) {
+                bar = make("aside", "global-announcement");
+                bar.id = "global-announcement";
+                bar.setAttribute("role", "status");
+                document.body.prepend(bar);
+            }
+            const author = announcement.author;
+            const owner =
+                author?.role === "owner" ||
+                author?.username?.toLowerCase() === "goldl00x";
+            bar.replaceChildren();
+            const identity = make(
+                "strong",
+                owner ? "announcement-owner" : "",
+                `${author?.username || "PyBlocks"}${owner ? " [OWNER]" : " [ADMIN]"}:`,
+            );
+            bar.append(
+                identity,
+                document.createTextNode(` ${announcement.message}`),
+            );
+        } catch {
+            // Public pages remain usable if announcements cannot load.
+        }
+    }
+
+    async function renderAdmins(container, owner) {
+        container.replaceChildren(
+            make("p", "admin-muted", "Loading access list…"),
+        );
+        try {
+            const admins = await cloud.listAdmins();
+            container.replaceChildren();
+            if (!admins.length)
+                container.append(
+                    make("p", "admin-muted", "No additional admins."),
+                );
+            admins.forEach((admin) => {
+                const row = make("div", "admin-access-row");
+                row.append(
+                    make(
+                        "strong",
+                        "",
+                        `@${admin.profile?.username || "unknown"}`,
+                    ),
+                );
+                if (owner) {
+                    const revoke = make("button", "danger-action", "REVOKE");
+                    revoke.type = "button";
+                    revoke.addEventListener("click", async () => {
+                        revoke.disabled = true;
+                        await cloud.revokeAdmin(admin.user_id);
+                        await renderAdmins(container, owner);
+                    });
+                    row.append(revoke);
+                }
+                container.append(row);
+            });
+        } catch (error) {
+            container.replaceChildren(make("p", "admin-error", error.message));
+        }
+    }
+
+    async function buildAdminDrawer(profile) {
+        const owner =
+            profile.role === "owner" ||
+            profile.username?.toLowerCase() === "goldl00x";
+        const tab = make("button", "admin-edge-tab", "A\nD\nM\nI\nN");
+        tab.type = "button";
+        tab.setAttribute("aria-label", "Open admin panel");
+        tab.setAttribute("aria-expanded", "false");
+        const drawer = make("aside", "admin-drawer");
+        drawer.setAttribute("aria-label", "Admin panel");
+        drawer.innerHTML = `
+            <header><div><small>PYBLOCKS CONTROL</small><h2>Admin</h2></div><button type="button" data-admin-close aria-label="Close admin panel">×</button></header>
+            <section><h3>Global announcement</h3><form data-announce><textarea maxlength="500" required placeholder="Message everyone…"></textarea><button class="admin-primary" type="submit">ANNOUNCE</button></form></section>
+            <section><h3>Grant a banner</h3><form data-banner-gift><input name="username" placeholder="Username" required><select name="banner"></select><select name="audience"><option value="user">This user</option><option value="active">All active users</option><option value="all">All users</option></select><button class="admin-primary" type="submit">GIVE BANNER</button></form><button type="button" class="admin-secondary" data-gift-achievement>Give “Free Giveaway” gift</button></section>
+            <section data-owner-access ${owner ? "" : "hidden"}><h3>Admin access</h3><form data-admin-search><input name="username" placeholder="Type a username" required><button class="admin-secondary" type="submit">SEARCH</button></form><div class="admin-user-search" data-admin-result></div><div data-admin-list></div></section>
+            <p class="admin-feedback" role="status"></p>`;
+        document.body.append(tab, drawer);
+        const feedback = drawer.querySelector(".admin-feedback");
+        const setFeedback = (text) => {
+            feedback.textContent = text;
+        };
+        const toggle = (open) => {
+            adminOpen = open;
+            drawer.classList.toggle("is-open", open);
+            tab.classList.toggle("is-open", open);
+            tab.setAttribute("aria-expanded", String(open));
+        };
+        tab.addEventListener("click", () => toggle(!adminOpen));
+        drawer
+            .querySelector("[data-admin-close]")
+            .addEventListener("click", () => toggle(false));
+
+        const banners = await cloud.listBanners();
+        const bannerSelect = drawer.querySelector("[name='banner']");
+        banners.forEach((banner) => {
+            const option = document.createElement("option");
+            option.value = banner.id;
+            option.textContent = banner.name;
+            bannerSelect.append(option);
+        });
+        drawer
+            .querySelector("[data-announce]")
+            .addEventListener("submit", async (event) => {
+                event.preventDefault();
+                const textarea = event.currentTarget.querySelector("textarea");
+                await cloud.publishAnnouncement(textarea.value);
+                textarea.value = "";
+                setFeedback("Announcement sent.");
+                announcementId = null;
+                await refreshAnnouncement();
+            });
+        drawer
+            .querySelector("[data-banner-gift]")
+            .addEventListener("submit", async (event) => {
+                event.preventDefault();
+                const values = Object.fromEntries(
+                    new window.FormData(event.currentTarget),
+                );
+                const count = await cloud.grantBanner(
+                    values.username,
+                    values.banner,
+                    values.audience,
+                );
+                setFeedback(
+                    `Banner granted to ${count} account${count === 1 ? "" : "s"}.`,
+                );
+            });
+        drawer
+            .querySelector("[data-gift-achievement]")
+            .addEventListener("click", async () => {
+                const username = drawer
+                    .querySelector("[data-banner-gift] [name='username']")
+                    .value.trim();
+                if (!username) return setFeedback("Type a username first.");
+                const given = await cloud.giveAdminGift(username);
+                setFeedback(
+                    given
+                        ? "Gift and Dynamic banner awarded."
+                        : "User not found.",
+                );
+            });
+        if (owner) {
+            const list = drawer.querySelector("[data-admin-list]");
+            await renderAdmins(list, owner);
+            drawer
+                .querySelector("[data-admin-search]")
+                .addEventListener("submit", async (event) => {
+                    event.preventDefault();
+                    const username = new window.FormData(event.currentTarget)
+                        .get("username")
+                        .trim();
+                    const results = await cloud.searchUsers(username);
+                    const result = drawer.querySelector("[data-admin-result]");
+                    result.replaceChildren();
+                    results.slice(0, 5).forEach((user) => {
+                        const select = make(
+                            "button",
+                            "admin-user-result",
+                            `@${user.username} — GRANT ADMIN`,
+                        );
+                        select.type = "button";
+                        select.addEventListener("click", async () => {
+                            await cloud.grantAdmin(user.username);
+                            setFeedback(`@${user.username} can now use Admin.`);
+                            result.replaceChildren();
+                            await renderAdmins(list, owner);
+                        });
+                        result.append(select);
+                    });
+                    if (!results.length)
+                        result.append(
+                            make("p", "admin-muted", "No matching users."),
+                        );
+                });
+        }
+    }
+
+    async function refreshAdminAccess() {
+        if (!cloud.currentUser()) return;
+        try {
+            if (!(await cloud.isAdmin())) {
+                document.querySelector(".admin-edge-tab")?.remove();
+                document.querySelector(".admin-drawer")?.remove();
+                return;
+            }
+            if (document.querySelector(".admin-drawer")) return;
+            await buildAdminDrawer(await cloud.getMyProfile());
+        } catch {
+            // Revocation removes the panel on the next access check.
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        void refreshAnnouncement();
+        void refreshAdminAccess();
+        window.setInterval(refreshAnnouncement, 15_000);
+        window.setInterval(refreshAdminAccess, 5_000);
+    });
+})();
