@@ -147,6 +147,16 @@ button {
     white-space: nowrap;
 }
 
+.view-mode .save-now-btn,
+.view-mode #libraries-btn,
+.view-mode .menu-container {
+    display: none;
+}
+
+.view-remix-link {
+    white-space: nowrap;
+}
+
 .menu-container {
     position: relative;
 }

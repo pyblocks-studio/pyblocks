@@ -170,6 +170,11 @@
     box-shadow: 3px 3px 0 #6f542e;
 }
 
+.profile-hero .owner-badge {
+    position: relative;
+    top: 7px;
+}
+
 .stats-grid {
     margin: 40px 0 70px;
     display: grid;
@@ -372,6 +377,22 @@
 .remix-credit.compact {
     margin: 16px 0 0;
     font-size: 0.7rem;
+}
+
+.project-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.secondary-cta {
+    border-color: var(--purple);
+    background: transparent;
+    color: #d7c2ff;
+}
+
+.secondary-cta:hover {
+    background: rgb(187 154 247 / 14%);
 }
 
 .project-code-card {

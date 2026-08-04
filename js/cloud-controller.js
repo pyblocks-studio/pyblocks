@@ -275,13 +275,39 @@ window.PyBlocksCloudController = (() => {
         }, 60_000);
         updateAccountButton();
         syncProjectName();
-        const requestedProjectId = new window.URLSearchParams(
-            window.location.search,
-        ).get("cloud");
-        const requestedRemixId = new window.URLSearchParams(
-            window.location.search,
-        ).get("remix");
-        if (requestedRemixId) {
+        const params = new window.URLSearchParams(window.location.search);
+        const requestedProjectId = params.get("cloud");
+        const requestedRemixId = params.get("remix");
+        const requestedViewId = params.get("view");
+        if (requestedViewId) {
+            void window.PyBlocksCloud.loadPublishedProject(requestedViewId)
+                .then((record) => {
+                    currentProjectId = null;
+                    currentPublished = false;
+                    window.PythonEngine.loadProject(record.project, {
+                        saved: true,
+                    });
+                    const nameInput =
+                        document.getElementById("project-name-input");
+                    nameInput.readOnly = true;
+                    nameInput.setAttribute(
+                        "aria-label",
+                        "Published project name (read only)",
+                    );
+                    const remixLink = document.createElement("a");
+                    remixLink.className = "btn btn-primary view-remix-link";
+                    remixLink.href = `editor.html?remix=${encodeURIComponent(record.id)}`;
+                    remixLink.textContent = "Remix project";
+                    document
+                        .querySelector(".project-title-controls")
+                        .append(remixLink);
+                    document.title = `Viewing ${record.name} — PyBlocks`;
+                    window.PythonEngine.updateSaveStatus(
+                        "Viewing published project · read only",
+                    );
+                })
+                .catch((error) => window.PythonEngine.showError(error.message));
+        } else if (requestedRemixId) {
             void window.PyBlocksCloud.loadPublishedProject(requestedRemixId)
                 .then(async (record) => {
                     const [author] = await window.PyBlocksCloud.getProfiles([

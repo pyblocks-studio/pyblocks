@@ -4,6 +4,10 @@ document.addEventListener("DOMContentLoaded", () => {
             throw new Error("Blockly could not be loaded.");
         }
 
+        const pageParams = new window.URLSearchParams(window.location.search);
+        const isViewMode = Boolean(pageParams.get("view"));
+        document.body.classList.toggle("view-mode", isViewMode);
+
         const theme = Blockly.Theme.defineTheme("pyblocks", {
             base: Blockly.Themes.Classic,
             blockStyles: {
@@ -102,9 +106,10 @@ document.addEventListener("DOMContentLoaded", () => {
         });
 
         const workspace = Blockly.inject("blockly-workspace", {
-            toolbox: document.getElementById("toolbox"),
+            toolbox: isViewMode ? null : document.getElementById("toolbox"),
             theme,
             renderer: "thrasos",
+            readOnly: isViewMode,
             media: "vendor/blockly/media/",
             grid: {
                 spacing: 24,
@@ -120,7 +125,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 minScale: 0.45,
                 scaleSpeed: 1.1,
             },
-            trashcan: true,
+            trashcan: !isViewMode,
             move: {
                 scrollbars: true,
                 drag: true,
@@ -138,6 +143,11 @@ document.addEventListener("DOMContentLoaded", () => {
         window.PythonEngine.restoreAutosave();
 
         const updateCode = (event) => {
+            if (isViewMode) {
+                if (!event || !event.isUiEvent)
+                    window.PythonEngine.updatePreview();
+                return;
+            }
             if (event?.type === Blockly.Events.BLOCK_CREATE) {
                 window.PyBlocksBlocks.enforceSingleRunEvent(
                     workspace,

@@ -105,6 +105,84 @@ test("public navigation search works without signing in", async ({
     await expect(page.getByRole("button", { name: "Users" })).toBeVisible();
 });
 
+test("published projects have separate read-only view and remix actions", async ({
+    page,
+}, testInfo) => {
+    test.skip(
+        !testInfo.project.name.includes("chromium-desktop"),
+        "Published project routing is engine-independent.",
+    );
+    const projectId = "9c175b4a-b78e-4f13-9c83-e27d4dd59a8c";
+    const userId = "1eb758ce-9e9d-4474-8c94-eef8da1ce54b";
+    const project = {
+        format: "pyblocks-project",
+        version: 1,
+        name: "Loop demo",
+        libraries: [],
+        settings: { executionTimeoutMs: 10_000 },
+        attribution: null,
+        workspace: { blocks: { languageVersion: 0, blocks: [] } },
+    };
+    await page.route("**/rest/v1/**", (route) => {
+        const url = route.request().url();
+        const body = url.includes("pyblocks_profiles")
+            ? [
+                  {
+                      user_id: userId,
+                      username: "original_creator",
+                      display_name: "Original Creator",
+                      avatar_path: null,
+                      role: "member",
+                      active_seconds: 0,
+                      joined_at: "2026-08-01T00:00:00Z",
+                      updated_at: "2026-08-01T00:00:00Z",
+                  },
+              ]
+            : [
+                  {
+                      id: projectId,
+                      user_id: userId,
+                      name: "Loop demo",
+                      description: "A published loop project.",
+                      payload: Buffer.from(JSON.stringify(project)).toString(
+                          "base64",
+                      ),
+                      encoding: "base64",
+                      published_at: "2026-08-01T00:00:00Z",
+                      updated_at: "2026-08-01T00:00:00Z",
+                      remixed_from_project_id: null,
+                      remixed_from_name: null,
+                      remixed_from_username: null,
+                  },
+              ];
+        return route.fulfill({
+            status: 200,
+            contentType: "application/json",
+            body: JSON.stringify(body),
+        });
+    });
+
+    await page.goto(`/project.html?id=${projectId}`);
+    await expect(
+        page.getByRole("link", { name: "VIEW PROJECT" }),
+    ).toHaveAttribute("href", `editor.html?view=${projectId}`);
+    await expect(
+        page.getByRole("link", { name: "REMIX PROJECT" }),
+    ).toHaveAttribute("href", `editor.html?remix=${projectId}`);
+
+    await page.goto(`/editor.html?view=${projectId}`);
+    await expect(page.locator("#project-name-input")).toHaveValue("Loop demo");
+    await expect(page.locator("#project-name-input")).toHaveAttribute(
+        "readonly",
+        "",
+    );
+    await expect(page.locator("#save-status")).toContainText("read only");
+    await expect(page.locator("#save-now-btn")).toBeHidden();
+    expect(
+        await page.evaluate(() => window.PyBlocksWorkspace.options.readOnly),
+    ).toBe(true);
+});
+
 test("runtime executes Python semantics, input, errors, concurrency, and termination", async ({
     page,
 }) => {

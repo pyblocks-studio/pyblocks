@@ -404,6 +404,8 @@
                 : "# No extra libraries",
             "# Open this creator's published project in PyBlocks.",
         ].join("\n");
+        document.getElementById("view-project-btn").href =
+            `editor.html?view=${encodeURIComponent(record.id)}`;
         document.getElementById("remix-project-btn").href =
             `editor.html?remix=${encodeURIComponent(record.id)}`;
     }
