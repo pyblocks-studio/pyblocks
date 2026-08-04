@@ -150,11 +150,106 @@
     font-size: 8rem;
     line-height: 1;
     pointer-events: none;
+    animation: owner-star-glow 3.4s ease-in-out infinite;
 }
 
 .owner-profile > * {
     position: relative;
     z-index: 1;
+}
+
+.owner-shooting-star {
+    position: absolute;
+    left: -12rem;
+    z-index: 0 !important;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: #fff8c5;
+    box-shadow:
+        0 0 7px #fff8c5,
+        0 0 15px #e0af68,
+        0 0 24px rgb(224 175 104 / 75%);
+    opacity: 0;
+    pointer-events: none;
+    animation: owner-shooting-star 6s linear infinite;
+}
+
+.owner-shooting-star::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    right: 2px;
+    width: clamp(80px, 13vw, 170px);
+    height: 2px;
+    border-radius: 50%;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgb(224 175 104 / 15%) 30%,
+        rgb(255 226 166 / 85%)
+    );
+    transform: translateY(-50%) rotate(24deg);
+    transform-origin: right center;
+}
+
+.owner-shooting-star-1 {
+    top: 4%;
+    animation-delay: -1.2s;
+    animation-duration: 5.8s;
+}
+
+.owner-shooting-star-2 {
+    top: 31%;
+    width: 4px;
+    height: 4px;
+    animation-delay: -4.5s;
+    animation-duration: 7.2s;
+}
+
+.owner-shooting-star-3 {
+    top: -16%;
+    animation-delay: -6.3s;
+    animation-duration: 8.6s;
+}
+
+.owner-shooting-star-4 {
+    top: 58%;
+    width: 3px;
+    height: 3px;
+    animation-delay: -2.8s;
+    animation-duration: 9.4s;
+}
+
+@keyframes owner-shooting-star {
+    0% {
+        opacity: 0;
+        transform: translate3d(0, -35px, 0);
+    }
+    8% {
+        opacity: 1;
+    }
+    70% {
+        opacity: 0.9;
+    }
+    100% {
+        opacity: 0;
+        transform: translate3d(145vw, 280px, 0);
+    }
+}
+
+@keyframes owner-star-glow {
+    0%,
+    100% {
+        opacity: 0.55;
+        filter: drop-shadow(0 0 0 transparent);
+        transform: scale(0.96) rotate(-4deg);
+    }
+    50% {
+        opacity: 1;
+        filter: drop-shadow(0 0 16px rgb(224 175 104 / 55%));
+        transform: scale(1.05) rotate(4deg);
+    }
 }
 
 .owner-badge {
@@ -479,5 +574,14 @@
     }
     .profile-settings-form {
         grid-template-columns: 1fr;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .owner-shooting-star {
+        display: none;
+    }
+    .owner-profile::after {
+        animation: none;
     }
 }

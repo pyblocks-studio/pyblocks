@@ -52,6 +52,17 @@
         image.src = `${url}?v=${encodeURIComponent(profile.updated_at || profile.avatar_path)}`;
     }
 
+    function decorateOwnerProfile(hero) {
+        hero.classList.add("owner-profile");
+        if (hero.querySelector(".owner-shooting-star")) return;
+        for (let index = 1; index <= 4; index += 1) {
+            const star = document.createElement("span");
+            star.className = `owner-shooting-star owner-shooting-star-${index}`;
+            star.setAttribute("aria-hidden", "true");
+            hero.append(star);
+        }
+    }
+
     function formatDuration(seconds) {
         const minutes = Math.floor(Number(seconds || 0) / 60);
         if (minutes < 60) return `${minutes}m`;
@@ -217,9 +228,7 @@
         );
         showAvatar(document.querySelector("[data-profile-avatar]"), profile);
         if (isOwner(profile)) {
-            document
-                .getElementById("profile-hero")
-                .classList.add("owner-profile");
+            decorateOwnerProfile(document.getElementById("profile-hero"));
             const badge = document.createElement("span");
             badge.className = "owner-badge";
             badge.textContent = "OWNER";
@@ -364,9 +373,7 @@
             `Joined ${new Date(profile.joined_at).toLocaleDateString()} · ${formatDuration(profile.active_seconds)} active`;
         showAvatar(document.querySelector("[data-profile-avatar]"), profile);
         if (isOwner(profile)) {
-            document
-                .getElementById("profile-hero")
-                .classList.add("owner-profile");
+            decorateOwnerProfile(document.getElementById("profile-hero"));
             document.getElementById("owner-badge").hidden = false;
         }
         await renderPublished(
