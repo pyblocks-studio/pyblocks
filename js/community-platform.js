@@ -1,6 +1,7 @@
 "use strict";
 
 (() => {
+    if (window.location.port === "4173") return;
     const cloud = window.PyBlocksCloud;
     if (!cloud?.configured()) return;
     let announcementId = null;
