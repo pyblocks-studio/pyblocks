@@ -681,56 +681,6 @@
     background: #07160e;
 }
 
-.circuit-reference-pattern {
-    position: absolute !important;
-    inset: 0;
-    z-index: 0 !important;
-    background: url("../assets/images/banner-circuitry-pattern.png") center /
-        cover no-repeat;
-    filter: invert(1) hue-rotate(160deg) saturate(1.8);
-    mix-blend-mode: screen;
-    opacity: 0.34;
-    pointer-events: none;
-}
-
-.circuit-reference-pulse {
-    opacity: 0.92;
-    filter: invert(1) hue-rotate(160deg) saturate(2.2) brightness(1.8)
-        drop-shadow(0 0 5px #aaffc5);
-    mask-image: linear-gradient(
-        90deg,
-        transparent 0%,
-        transparent 42%,
-        #000 49%,
-        #000 53%,
-        transparent 60%,
-        transparent 100%
-    );
-    mask-size: 320% 100%;
-    -webkit-mask-image: linear-gradient(
-        90deg,
-        transparent 0%,
-        transparent 42%,
-        #000 49%,
-        #000 53%,
-        transparent 60%,
-        transparent 100%
-    );
-    -webkit-mask-size: 320% 100%;
-    animation: circuit-reference-pulse 5.5s linear infinite;
-}
-
-@keyframes circuit-reference-pulse {
-    from {
-        mask-position: 110% 0;
-        -webkit-mask-position: 110% 0;
-    }
-    to {
-        mask-position: -110% 0;
-        -webkit-mask-position: -110% 0;
-    }
-}
-
 .circuit-trace {
     position: absolute !important;
     z-index: 0 !important;
@@ -861,6 +811,33 @@
     width: 92px;
     transform: rotate(180deg);
     animation-delay: -4.55s;
+}
+.circuit-trace-15 {
+    left: 3%;
+    top: 24%;
+    width: 72px;
+    transform: rotate(180deg);
+    animation-delay: -0.55s;
+}
+.circuit-trace-16 {
+    left: 58%;
+    top: 17%;
+    width: 104px;
+    transform: rotate(90deg);
+    animation-delay: -1.85s;
+}
+.circuit-trace-17 {
+    right: 18%;
+    top: 29%;
+    width: 126px;
+    animation-delay: -2.95s;
+}
+.circuit-trace-18 {
+    left: 52%;
+    bottom: 7%;
+    width: 88px;
+    transform: rotate(270deg);
+    animation-delay: -4.25s;
 }
 
 .banner-dynamic {
@@ -1058,9 +1035,31 @@
         linear-gradient(135deg, #5f451d, #171a28);
 }
 .banner-card-circuitry .banner-card-preview {
-    background: #fff url("../assets/images/banner-circuitry-pattern.png")
-        center / cover no-repeat;
-    filter: invert(1) hue-rotate(160deg) saturate(1.8);
+    background:
+        radial-gradient(circle at 18% 28%, #4bd977 0 2px, transparent 3px),
+        radial-gradient(circle at 76% 66%, #4bd977 0 2px, transparent 3px),
+        linear-gradient(
+                90deg,
+                transparent 0 17%,
+                #245f38 17% 18%,
+                transparent 18%
+            )
+            0 0 / 92px 52px,
+        linear-gradient(
+                0deg,
+                transparent 0 54%,
+                #245f38 54% 57%,
+                transparent 57%
+            )
+            0 0 / 92px 52px,
+        linear-gradient(
+                90deg,
+                transparent 0 62%,
+                #245f38 62% 64%,
+                transparent 64%
+            )
+            18px 5px / 118px 44px,
+        #07160e;
 }
 .banner-card-dynamic .banner-card-preview {
     background:

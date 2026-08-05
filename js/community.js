@@ -73,15 +73,13 @@
             surface.append(decoration);
         }
         if (bannerId === "circuitry") {
-            const diagram = document.createElement("span");
-            diagram.className = "circuit-reference-pattern";
-            diagram.dataset.bannerDecoration = "";
-            diagram.setAttribute("aria-hidden", "true");
-            surface.append(diagram);
-            const pulse = diagram.cloneNode();
-            pulse.className =
-                "circuit-reference-pattern circuit-reference-pulse";
-            surface.append(pulse);
+            for (let index = 1; index <= 18; index += 1) {
+                const circuit = document.createElement("span");
+                circuit.className = `circuit-trace circuit-trace-${index}`;
+                circuit.dataset.bannerDecoration = "";
+                circuit.setAttribute("aria-hidden", "true");
+                surface.append(circuit);
+            }
         }
     }
 
