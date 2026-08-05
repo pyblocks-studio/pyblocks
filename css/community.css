@@ -1750,6 +1750,16 @@
 .admin-edge-tab.is-open {
     right: min(420px, calc(100vw - 38px));
 }
+
+.admin-action-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+
+.admin-action-grid > button {
+    min-height: 42px;
+}
 .admin-drawer {
     position: fixed;
     top: 0;

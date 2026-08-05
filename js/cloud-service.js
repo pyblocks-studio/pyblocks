@@ -567,6 +567,25 @@ window.PyBlocksCloud = (() => {
         });
     }
 
+    function revokeBanner(username, bannerId) {
+        return rpc("pyblocks_revoke_banner", {
+            target_username: username,
+            target_banner: bannerId,
+        });
+    }
+
+    function grantAllBanners(username) {
+        return rpc("pyblocks_grant_all_banners", {
+            target_username: username,
+        });
+    }
+
+    function revokeAllBanners(username) {
+        return rpc("pyblocks_revoke_all_banners", {
+            target_username: username,
+        });
+    }
+
     function giveAdminGift(username) {
         return rpc("pyblocks_give_admin_gift", {
             target_username: username,
@@ -649,6 +668,9 @@ window.PyBlocksCloud = (() => {
         grantAdmin,
         revokeAdmin,
         grantBanner,
+        revokeBanner,
+        grantAllBanners,
+        revokeAllBanners,
         giveAdminGift,
         setRankTag,
         publishAnnouncement,
