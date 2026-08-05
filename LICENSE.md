@@ -12,6 +12,8 @@ PyBlocks Studio was built using Blockly, an open-source project maintained by Go
 
 PyBlocks Studio also includes Skulpt, which is maintained by its respective contributors and provided under the MIT License. Skulpt files under `vendor/skulpt/` remain governed by that license.
 
+The Nyan Cat artwork used by the optional NYAN CAT profile banner was created by Christopher Torres (prguitarman) and is loaded from a locally stored copy of the animation published by nyan.cat. Nyan Cat is third-party artwork; all rights in that artwork and character remain with their respective owner. Its inclusion does not transfer ownership or grant a separate redistribution license.
+
 Use of these third-party components does not grant permission to copy or redistribute the original PyBlocks Studio portions of this repository. The applicable upstream license and copyright notice must be retained whenever a third-party component is redistributed.
 
 3. Original PyBlocks Work and Source Code Restrictions

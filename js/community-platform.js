@@ -4,7 +4,7 @@
     if (window.location.port === "4173") return;
     const cloud = window.PyBlocksCloud;
     if (!cloud?.configured()) return;
-    let announcementId = null;
+    const announcementTimers = new Map();
     let adminOpen = false;
 
     function make(tag, className, text) {
@@ -14,37 +14,67 @@
         return node;
     }
 
-    async function refreshAnnouncement() {
+    function announcementStack() {
+        let stack = document.getElementById("global-announcements");
+        if (!stack) {
+            stack = make("section", "global-announcements");
+            stack.id = "global-announcements";
+            stack.setAttribute("aria-label", "PyBlocks announcements");
+            stack.setAttribute("aria-live", "polite");
+            document.body.prepend(stack);
+        }
+        return stack;
+    }
+
+    function removeAnnouncement(id) {
+        document.querySelector(`[data-announcement-id="${id}"]`)?.remove();
+        window.clearTimeout(announcementTimers.get(id));
+        announcementTimers.delete(id);
+        if (!document.querySelector(".global-announcement")) {
+            document.getElementById("global-announcements")?.remove();
+        }
+    }
+
+    function renderAnnouncement(announcement) {
+        if (
+            document.querySelector(
+                `[data-announcement-id="${announcement.id}"]`,
+            )
+        )
+            return;
+        const age = Date.now() - new Date(announcement.created_at).getTime();
+        const remaining = 30_000 - age;
+        if (remaining <= 0) return;
+        const bar = make("aside", "global-announcement");
+        bar.dataset.announcementId = announcement.id;
+        bar.setAttribute("role", "status");
+        const author = announcement.author;
+        const owner =
+            author?.role === "owner" ||
+            author?.username?.toLowerCase() === "goldl00x";
+        const identity = make(
+            "strong",
+            owner ? "announcement-owner" : "",
+            `${author?.username || "PyBlocks"}${owner ? " [OWNER]" : " [ADMIN]"}:`,
+        );
+        bar.append(
+            identity,
+            document.createTextNode(` ${announcement.message}`),
+        );
+        announcementStack().append(bar);
+        announcementTimers.set(
+            announcement.id,
+            window.setTimeout(
+                () => removeAnnouncement(announcement.id),
+                remaining,
+            ),
+        );
+    }
+
+    async function refreshAnnouncements() {
         try {
-            const announcement = await cloud.getActiveAnnouncement();
-            if (!announcement) {
-                document.getElementById("global-announcement")?.remove();
-                announcementId = null;
-                return;
-            }
-            if (announcement.id === announcementId) return;
-            announcementId = announcement.id;
-            let bar = document.getElementById("global-announcement");
-            if (!bar) {
-                bar = make("aside", "global-announcement");
-                bar.id = "global-announcement";
-                bar.setAttribute("role", "status");
-                document.body.prepend(bar);
-            }
-            const author = announcement.author;
-            const owner =
-                author?.role === "owner" ||
-                author?.username?.toLowerCase() === "goldl00x";
-            bar.replaceChildren();
-            const identity = make(
-                "strong",
-                owner ? "announcement-owner" : "",
-                `${author?.username || "PyBlocks"}${owner ? " [OWNER]" : " [ADMIN]"}:`,
-            );
-            bar.append(
-                identity,
-                document.createTextNode(` ${announcement.message}`),
-            );
+            const announcements = await cloud.getActiveAnnouncements();
+            announcements.forEach(renderAnnouncement);
         } catch {
             // Public pages remain usable if announcements cannot load.
         }
@@ -122,12 +152,18 @@
 
         const banners = await cloud.listBanners();
         const bannerSelect = drawer.querySelector("[name='banner']");
-        banners.forEach((banner) => {
-            const option = document.createElement("option");
-            option.value = banner.id;
-            option.textContent = banner.name;
-            bannerSelect.append(option);
-        });
+        banners
+            .filter(
+                (banner) =>
+                    banner.grant_level !== "automatic" &&
+                    (owner || banner.grant_level !== "owner"),
+            )
+            .forEach((banner) => {
+                const option = document.createElement("option");
+                option.value = banner.id;
+                option.textContent = banner.name;
+                bannerSelect.append(option);
+            });
         drawer
             .querySelector("[data-announce]")
             .addEventListener("submit", async (event) => {
@@ -136,8 +172,7 @@
                 await cloud.publishAnnouncement(textarea.value);
                 textarea.value = "";
                 setFeedback("Announcement sent.");
-                announcementId = null;
-                await refreshAnnouncement();
+                await refreshAnnouncements();
             });
         drawer
             .querySelector("[data-banner-gift]")
@@ -238,9 +273,9 @@
     }
 
     document.addEventListener("DOMContentLoaded", () => {
-        void refreshAnnouncement();
+        void refreshAnnouncements();
         void refreshAdminAccess();
-        window.setInterval(refreshAnnouncement, 15_000);
+        window.setInterval(refreshAnnouncements, 5_000);
         window.setInterval(refreshAdminAccess, 5_000);
     });
 })();

@@ -474,7 +474,7 @@ window.PyBlocksCloud = (() => {
 
     async function listBanners() {
         return request(
-            "/rest/v1/pyblocks_banners?select=id,name,description,sort_order,is_public&order=sort_order.asc",
+            "/rest/v1/pyblocks_banners?select=id,name,description,sort_order,is_public,grant_level&order=sort_order.asc",
             { method: "GET" },
         );
     }
@@ -596,14 +596,23 @@ window.PyBlocksCloud = (() => {
         );
     }
 
-    async function getActiveAnnouncement() {
+    async function getActiveAnnouncements() {
+        const cutoff = new Date(Date.now() - 30_000).toISOString();
         const rows = await request(
-            "/rest/v1/pyblocks_announcements?active=eq.true&select=id,message,author_id,created_at&order=created_at.desc&limit=1",
+            `/rest/v1/pyblocks_announcements?active=eq.true&created_at=gte.${encodeURIComponent(cutoff)}&select=id,message,author_id,created_at&order=created_at.asc&limit=20`,
             { method: "GET" },
         );
-        if (!rows?.length) return null;
-        const [author] = await getProfiles([rows[0].author_id]);
-        return { ...rows[0], author };
+        if (!rows?.length) return [];
+        const profiles = await getProfiles([
+            ...new Set(rows.map((row) => row.author_id)),
+        ]);
+        const profileMap = new Map(
+            profiles.map((profile) => [profile.user_id, profile]),
+        );
+        return rows.map((row) => ({
+            ...row,
+            author: profileMap.get(row.author_id),
+        }));
     }
 
     return {
@@ -643,7 +652,7 @@ window.PyBlocksCloud = (() => {
         giveAdminGift,
         setRankTag,
         publishAnnouncement,
-        getActiveAnnouncement,
+        getActiveAnnouncements,
         compress,
         decompress,
     };

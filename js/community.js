@@ -242,22 +242,40 @@
         const surface = hero;
         [...surface.classList]
             .filter((name) =>
-                /^banner-(default|vip|pride|circuitry|dynamic)$/.test(name),
+                /^banner-(default|vip|pride|circuitry|dynamic|og|uwu|nyan|hacker|blueprint|glitch|orbit|echo)$/.test(
+                    name,
+                ),
             )
             .forEach((name) => surface.classList.remove(name));
         surface.classList.add(`banner-${bannerId || "default"}`);
         surface
             .querySelectorAll("[data-banner-decoration]")
             .forEach((node) => node.remove());
-        const count = bannerId === "vip" ? 12 : bannerId === "dynamic" ? 5 : 0;
+        const decorationTypes = {
+            vip: ["owner-shooting-star", 12],
+            dynamic: ["dynamic-ripple", 5],
+            og: ["og-gear", 14],
+            uwu: ["uwu-cat", 10],
+            hacker: ["hacker-line", 14],
+            orbit: ["orbit-particle", 9],
+            echo: ["echo-wave", 6],
+        };
+        const [decorationType, count] = decorationTypes[bannerId] || ["", 0];
         for (let index = 1; index <= count; index += 1) {
             const decoration = document.createElement("span");
-            decoration.className =
-                bannerId === "vip"
-                    ? `owner-shooting-star owner-shooting-star-${index}`
-                    : `dynamic-ripple dynamic-ripple-${index}`;
+            decoration.className = `${decorationType} ${decorationType}-${index}`;
             decoration.dataset.bannerDecoration = "";
             decoration.setAttribute("aria-hidden", "true");
+            if (bannerId === "og") decoration.textContent = "⚙";
+            if (bannerId === "uwu")
+                decoration.textContent = index % 2 ? "(=^･ω･^=)" : "ฅ^•ﻌ•^ฅ";
+            if (bannerId === "hacker")
+                decoration.textContent =
+                    index % 3 === 0
+                        ? "$ python pyblocks.py --unlock"
+                        : index % 2
+                          ? "01101000 01100001 01100011 01101011"
+                          : "root@pyblocks:~$ access granted";
             surface.append(decoration);
         }
         if (bannerId === "circuitry") {
