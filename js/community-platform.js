@@ -153,11 +153,7 @@
         const banners = await cloud.listBanners();
         const bannerSelect = drawer.querySelector("[name='banner']");
         banners
-            .filter(
-                (banner) =>
-                    banner.grant_level !== "automatic" &&
-                    (owner || banner.grant_level !== "owner"),
-            )
+            .filter((banner) => owner || banner.grant_level !== "owner")
             .forEach((banner) => {
                 const option = document.createElement("option");
                 option.value = banner.id;
