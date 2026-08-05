@@ -40,6 +40,9 @@
 }
 
 .profile-hero {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
     min-height: 250px;
     padding: clamp(28px, 5vw, 58px);
     border: 1px solid var(--border);
@@ -127,19 +130,7 @@
 }
 
 .banner-identity-panel {
-    position: relative;
-    isolation: isolate;
     width: min(560px, 100%);
-    min-height: 190px;
-    padding: 24px 28px;
-    overflow: hidden;
-    border: 1px solid var(--border);
-    background: linear-gradient(135deg, var(--surface), #121622);
-}
-
-.banner-identity-panel > :not([data-banner-decoration]) {
-    position: relative;
-    z-index: 2;
 }
 
 .banner-vip {
@@ -984,39 +975,30 @@
     box-shadow: 4px 4px 0 #315d35;
 }
 .banner-card-preview {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
     height: 72px;
     background: #171a28;
 }
-.banner-card-pride .banner-card-preview {
-    background: linear-gradient(
-        100deg,
-        #e84b4b,
-        #f0a33a,
-        #e5d94b,
-        #48b96c,
-        #4c85dc,
-        #8f62d2
-    );
+.banner-card-preview.banner-vip {
+    box-shadow: none;
 }
-.banner-card-vip .banner-card-preview {
-    background:
-        radial-gradient(circle at 70% 30%, #fff5bc 0 2px, transparent 3px),
-        linear-gradient(135deg, #5f451d, #171a28);
+.banner-card-preview.banner-vip::after {
+    right: 12%;
+    bottom: -2rem;
+    font-size: 4rem;
 }
-.banner-card-circuitry .banner-card-preview {
-    background: repeating-linear-gradient(
-        90deg,
-        #07160e 0 25px,
-        #43d17a 26px 28px
-    );
+.banner-card-preview .owner-shooting-star::before {
+    width: 62px;
 }
-.banner-card-dynamic .banner-card-preview {
-    background: radial-gradient(
-        circle at 25% 45%,
-        transparent 0 10px,
-        #7aa2f7 11px 13px,
-        #17142f 14px
-    );
+.banner-card-preview .circuit-trace {
+    scale: 0.62;
+    transform-origin: center;
+}
+.banner-card-preview .dynamic-ripple {
+    width: 8px;
+    height: 8px;
 }
 .banner-card small {
     color: var(--muted);

@@ -53,7 +53,7 @@
     }
 
     function decorateBanner(hero, bannerId = "default") {
-        const surface = hero.querySelector("[data-banner-surface]") || hero;
+        const surface = hero;
         [...surface.classList]
             .filter((name) => name.startsWith("banner-"))
             .forEach((name) => surface.classList.remove(name));
@@ -293,6 +293,10 @@
                 card.disabled = !unlocked;
                 card.className = `banner-card banner-card-${banner.id}`;
                 card.innerHTML = `<span class="banner-card-preview"></span><strong>${banner.name}</strong><small>${unlocked ? banner.description : "Locked — earn or receive this banner."}</small>`;
+                decorateBanner(
+                    card.querySelector(".banner-card-preview"),
+                    banner.id,
+                );
                 if (equippedBanner === banner.id)
                     card.classList.add("is-equipped");
                 card.addEventListener("click", async () => {
