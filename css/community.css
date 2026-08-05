@@ -977,7 +977,11 @@
 .banner-card-preview {
     position: relative;
     isolation: isolate;
+    display: block;
+    width: 100%;
     overflow: hidden;
+    contain: layout paint;
+    clip-path: inset(0);
     height: 72px;
     background: #171a28;
 }
@@ -990,15 +994,53 @@
     font-size: 4rem;
 }
 .banner-card-preview .owner-shooting-star::before {
-    width: 62px;
+    width: 42px;
+}
+.banner-card-preview .owner-shooting-star {
+    left: -40px;
+    scale: 0.55;
+    animation-name: preview-shooting-star;
 }
 .banner-card-preview .circuit-trace {
-    scale: 0.62;
+    scale: 0.38;
     transform-origin: center;
 }
 .banner-card-preview .dynamic-ripple {
-    width: 8px;
-    height: 8px;
+    width: 6px;
+    height: 6px;
+    animation-name: preview-dynamic-ripple;
+}
+
+@keyframes preview-shooting-star {
+    0% {
+        opacity: 0;
+        transform: translate3d(0, -10px, 0);
+    }
+    12% {
+        opacity: 1;
+    }
+    72% {
+        opacity: 0.85;
+    }
+    100% {
+        opacity: 0;
+        transform: translate3d(260px, 64px, 0);
+    }
+}
+
+@keyframes preview-dynamic-ripple {
+    0% {
+        opacity: 0;
+        transform: scale(0.2);
+    }
+    12% {
+        opacity: 0.8;
+    }
+    75%,
+    100% {
+        opacity: 0;
+        transform: scale(5);
+    }
 }
 .banner-card small {
     color: var(--muted);
