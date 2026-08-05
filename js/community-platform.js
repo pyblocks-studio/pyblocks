@@ -325,4 +325,21 @@
         window.setInterval(refreshAnnouncements, 5_000);
         window.setInterval(refreshAdminAccess, 5_000);
     });
+    document.addEventListener("pyblocks:realtime", (event) => {
+        if (event.detail.table === "pyblocks_announcements") {
+            if (
+                event.detail.eventType === "DELETE" ||
+                event.detail.new?.active === false
+            )
+                removeAnnouncement(
+                    event.detail.old?.id || event.detail.new?.id,
+                );
+            void refreshAnnouncements();
+        }
+        if (
+            event.detail.table === "pyblocks_admins" ||
+            event.detail.table === "pyblocks_profiles"
+        )
+            void refreshAdminAccess();
+    });
 })();

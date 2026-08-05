@@ -18,6 +18,7 @@
     "prettier": "3.6.2"
   },
   "dependencies": {
+    "@supabase/supabase-js": "2.112.0",
     "blockly": "13.2.0",
     "skulpt": "1.2.0"
   }

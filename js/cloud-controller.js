@@ -262,6 +262,14 @@ window.PyBlocksCloudController = (() => {
             updateAccountButton,
         );
         document.addEventListener("pyblocks:project-changed", scheduleAutosave);
+        document.addEventListener("pyblocks:realtime", (event) => {
+            if (
+                event.detail.table === "pyblocks_projects" &&
+                !dialog.hidden &&
+                window.PyBlocksCloud.currentUser()
+            )
+                void renderProjects();
+        });
         document.addEventListener("pyblocks:project-loaded", (event) => {
             syncProjectName(event.detail?.name);
             if (event.detail?.isNew) {

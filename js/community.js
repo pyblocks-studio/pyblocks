@@ -500,61 +500,62 @@
         );
         const bannerLibrary = document.getElementById("banner-library");
         if (bannerLibrary) {
-            const [banners, owned] = await Promise.all([
-                window.PyBlocksCloud.listBanners(),
-                window.PyBlocksCloud.getUserBanners(profile.user_id),
-            ]);
-            const ownedIds = new Set(owned.map((item) => item.banner_id));
-            const createBannerCard = (banner, unlocked) => {
-                const card = document.createElement("button");
-                card.type = "button";
-                card.disabled = !unlocked;
-                card.className = `banner-card banner-card-${banner.id}`;
-                card.innerHTML = `<span class="banner-card-preview"></span><strong>${banner.name}</strong><small>${unlocked ? banner.description : "Locked — earn or receive this banner."}</small>`;
-                renderBannerPreview(
-                    card.querySelector(".banner-card-preview"),
-                    banner.id,
+            let bannerRefreshTimer = 0;
+            const refreshBanners = async () => {
+                const [banners, owned, currentProfile] = await Promise.all([
+                    window.PyBlocksCloud.listBanners(),
+                    window.PyBlocksCloud.getUserBanners(profile.user_id),
+                    window.PyBlocksCloud.getMyProfile(),
+                ]);
+                const activeBanner =
+                    currentProfile.equipped_banner_id ||
+                    (isOwner(currentProfile) ? "vip" : "default");
+                const ownedIds = new Set(owned.map((item) => item.banner_id));
+                const createBannerCard = (banner, unlocked) => {
+                    const card = document.createElement("button");
+                    card.type = "button";
+                    card.disabled = !unlocked;
+                    card.className = `banner-card banner-card-${banner.id}`;
+                    card.innerHTML = `<span class="banner-card-preview"></span><strong>${banner.name}</strong><small>${unlocked ? banner.description : "Locked — earn or receive this banner."}</small>`;
+                    renderBannerPreview(
+                        card.querySelector(".banner-card-preview"),
+                        banner.id,
+                    );
+                    if (activeBanner === banner.id)
+                        card.classList.add("is-equipped");
+                    card.addEventListener("click", async () => {
+                        await window.PyBlocksCloud.equipBanner(banner.id);
+                        await refreshBanners();
+                    });
+                    return card;
+                };
+                const unlockedBanners = banners.filter(
+                    (banner) => banner.is_public || ownedIds.has(banner.id),
                 );
-                if (equippedBanner === banner.id)
-                    card.classList.add("is-equipped");
-                card.addEventListener("click", async () => {
-                    await window.PyBlocksCloud.equipBanner(banner.id);
-                    decorateBanner(
-                        document.getElementById("profile-hero"),
-                        banner.id,
-                    );
-                    bannerLabel(
-                        document.getElementById("dashboard-banner-label"),
-                        banner.id,
-                    );
-                    bannerLibrary
-                        .querySelectorAll(".is-equipped")
-                        .forEach((item) =>
-                            item.classList.remove("is-equipped"),
-                        );
-                    card.classList.add("is-equipped");
+                const lockedBanners = banners.filter(
+                    (banner) => !banner.is_public && !ownedIds.has(banner.id),
+                );
+
+                decorateBanner(
+                    document.getElementById("profile-hero"),
+                    activeBanner,
+                );
+                bannerLabel(
+                    document.getElementById("dashboard-banner-label"),
+                    activeBanner,
+                );
+                bannerLibrary.replaceChildren();
+                unlockedBanners.forEach((banner) => {
+                    bannerLibrary.append(createBannerCard(banner, true));
                 });
-                return card;
-            };
-            const unlockedBanners = banners.filter(
-                (banner) => banner.is_public || ownedIds.has(banner.id),
-            );
-            const lockedBanners = banners.filter(
-                (banner) => !banner.is_public && !ownedIds.has(banner.id),
-            );
 
-            unlockedBanners.forEach((banner) => {
-                bannerLibrary.append(createBannerCard(banner, true));
-            });
-
-            if (lockedBanners.length) {
+                if (!lockedBanners.length) return;
                 const toggle = document.createElement("button");
                 toggle.type = "button";
                 toggle.className = "banner-card banner-lock-toggle";
                 toggle.setAttribute("aria-expanded", "false");
                 toggle.innerHTML =
                     '<span class="banner-lock-icon" aria-hidden="true">?</span><strong>SHOW LOCKED BANNERS</strong><small>See banners you can still earn or receive.</small>';
-
                 const lockedCards = lockedBanners.map((banner) => {
                     const card = createBannerCard(banner, false);
                     card.hidden = true;
@@ -571,9 +572,24 @@
                         card.hidden = !shouldShow;
                     });
                 });
-
                 bannerLibrary.append(toggle, ...lockedCards);
-            }
+            };
+            document.addEventListener("pyblocks:realtime", (event) => {
+                if (
+                    ![
+                        "pyblocks_profiles",
+                        "pyblocks_banners",
+                        "pyblocks_user_banners",
+                    ].includes(event.detail.table)
+                )
+                    return;
+                window.clearTimeout(bannerRefreshTimer);
+                bannerRefreshTimer = window.setTimeout(
+                    () => void refreshBanners(),
+                    120,
+                );
+            });
+            await refreshBanners();
         }
         document.getElementById("stat-active").textContent = formatDuration(
             profile.active_seconds,
@@ -641,6 +657,40 @@
             results,
             await window.PyBlocksCloud.listPublishedProjects(20),
         );
+        let communityRefreshTimer = 0;
+        document.addEventListener("pyblocks:realtime", (event) => {
+            if (
+                ![
+                    "pyblocks_profiles",
+                    "pyblocks_projects",
+                    "pyblocks_user_achievements",
+                ].includes(event.detail.table)
+            )
+                return;
+            window.clearTimeout(communityRefreshTimer);
+            communityRefreshTimer = window.setTimeout(async () => {
+                const [currentProfile, refreshedProjects, published] =
+                    await Promise.all([
+                        window.PyBlocksCloud.getMyProfile(),
+                        window.PyBlocksCloud.listProjects(),
+                        window.PyBlocksCloud.listPublishedProjects(20),
+                    ]);
+                document.getElementById("dashboard-display-name").textContent =
+                    currentProfile.display_name || currentProfile.username;
+                document.getElementById("stat-active").textContent =
+                    formatDuration(currentProfile.active_seconds);
+                document.getElementById("stat-published").textContent =
+                    refreshedProjects.filter(
+                        (project) => project.is_published,
+                    ).length;
+                showAvatar(
+                    document.querySelector("[data-profile-avatar]"),
+                    currentProfile,
+                );
+                await refreshMine();
+                await renderPublished(results, published);
+            }, 120);
+        });
         let resultType = "projects";
         document.querySelectorAll("[data-result-type]").forEach((button) => {
             button.addEventListener("click", () => {
@@ -753,6 +803,74 @@
             document.getElementById("public-projects"),
             projects,
         );
+        let publicRefreshTimer = 0;
+        document.addEventListener("pyblocks:realtime", (event) => {
+            if (
+                ![
+                    "pyblocks_profiles",
+                    "pyblocks_projects",
+                    "pyblocks_user_banners",
+                    "pyblocks_user_achievements",
+                ].includes(event.detail.table)
+            )
+                return;
+            window.clearTimeout(publicRefreshTimer);
+            publicRefreshTimer = window.setTimeout(async () => {
+                const [updatedProfile, updatedProjects, achievements, earned] =
+                    await Promise.all([
+                        window.PyBlocksCloud.getProfileByUsername(username),
+                        window.PyBlocksCloud.listPublishedByUser(
+                            profile.user_id,
+                        ),
+                        window.PyBlocksCloud.listAchievements(),
+                        window.PyBlocksCloud.getUserAchievements(
+                            profile.user_id,
+                        ),
+                    ]);
+                if (!updatedProfile) return;
+                document.getElementById("public-display-name").textContent =
+                    updatedProfile.display_name || updatedProfile.username;
+                document.getElementById("public-title").textContent =
+                    profileTitle(updatedProfile, updatedProjects.length);
+                document.getElementById("public-joined").textContent =
+                    `Joined ${new Date(updatedProfile.joined_at).toLocaleDateString()} · ${formatDuration(updatedProfile.active_seconds)} active`;
+                showAvatar(
+                    document.querySelector("[data-profile-avatar]"),
+                    updatedProfile,
+                );
+                const updatedBanner =
+                    updatedProfile.equipped_banner_id ||
+                    (isOwner(updatedProfile) ? "vip" : "default");
+                decorateBanner(
+                    document.getElementById("profile-hero"),
+                    updatedBanner,
+                );
+                bannerLabel(
+                    document.getElementById("public-banner-label"),
+                    updatedBanner,
+                );
+                const byId = new Map(
+                    achievements.map((item) => [item.id, item]),
+                );
+                achievementHost?.replaceChildren();
+                earned.forEach((record) => {
+                    const achievement = byId.get(record.achievement_id);
+                    if (!achievement || !achievementHost) return;
+                    const badge = document.createElement("article");
+                    badge.className = "achievement-badge earned";
+                    badge.innerHTML = `<span>★</span><div><strong>${achievement.name}</strong><small>${achievement.description}</small></div>`;
+                    achievementHost.append(badge);
+                });
+                if (achievementHost && !earned.length)
+                    achievementHost.append(
+                        empty("No achievements earned yet."),
+                    );
+                await renderPublished(
+                    document.getElementById("public-projects"),
+                    updatedProjects,
+                );
+            }, 120);
+        });
     }
 
     async function initProject() {
@@ -853,6 +971,17 @@
             });
         });
         await render();
+        let discoverRefreshTimer = 0;
+        document.addEventListener("pyblocks:realtime", (event) => {
+            if (
+                !["pyblocks_profiles", "pyblocks_projects"].includes(
+                    event.detail.table,
+                )
+            )
+                return;
+            window.clearTimeout(discoverRefreshTimer);
+            discoverRefreshTimer = window.setTimeout(() => void render(), 120);
+        });
     }
 
     async function initAchievements() {
@@ -861,26 +990,46 @@
             window.location.href = "index.html";
             return;
         }
-        const [achievements, earned, banners] = await Promise.all([
-            window.PyBlocksCloud.listAchievements(),
-            window.PyBlocksCloud.getUserAchievements(user.id),
-            window.PyBlocksCloud.listBanners(),
-        ]);
-        const earnedMap = new Map(
-            earned.map((item) => [item.achievement_id, item]),
-        );
-        const bannerMap = new Map(banners.map((item) => [item.id, item]));
         const host = document.getElementById("achievement-library");
-        achievements.forEach((achievement) => {
-            const record = earnedMap.get(achievement.id);
-            const reward = achievement.reward_banner_id
-                ? `${bannerMap.get(achievement.reward_banner_id)?.name || achievement.reward_banner_id} Banner`
-                : "No banner reward";
-            const card = document.createElement("article");
-            card.className = `achievement-card${record ? " is-earned" : ""}`;
-            card.innerHTML = `<span class="achievement-icon">${record ? "★" : "☆"}</span><div><p class="eyebrow">${record ? `EARNED ${new Date(record.earned_at).toLocaleDateString()}` : "NOT YET EARNED"}</p><h2>${achievement.name}</h2><p>${achievement.description}</p><strong>Reward: ${reward}</strong></div>`;
-            host.append(card);
+        const renderAchievementLibrary = async () => {
+            const [achievements, earned, banners] = await Promise.all([
+                window.PyBlocksCloud.listAchievements(),
+                window.PyBlocksCloud.getUserAchievements(user.id),
+                window.PyBlocksCloud.listBanners(),
+            ]);
+            const earnedMap = new Map(
+                earned.map((item) => [item.achievement_id, item]),
+            );
+            const bannerMap = new Map(banners.map((item) => [item.id, item]));
+            host.replaceChildren();
+            achievements.forEach((achievement) => {
+                const record = earnedMap.get(achievement.id);
+                const reward = achievement.reward_banner_id
+                    ? `${bannerMap.get(achievement.reward_banner_id)?.name || achievement.reward_banner_id} Banner`
+                    : "No banner reward";
+                const card = document.createElement("article");
+                card.className = `achievement-card${record ? " is-earned" : ""}`;
+                card.innerHTML = `<span class="achievement-icon">${record ? "★" : "☆"}</span><div><p class="eyebrow">${record ? `EARNED ${new Date(record.earned_at).toLocaleDateString()}` : "NOT YET EARNED"}</p><h2>${achievement.name}</h2><p>${achievement.description}</p><strong>Reward: ${reward}</strong></div>`;
+                host.append(card);
+            });
+        };
+        let achievementRefreshTimer = 0;
+        document.addEventListener("pyblocks:realtime", (event) => {
+            if (
+                ![
+                    "pyblocks_achievements",
+                    "pyblocks_user_achievements",
+                    "pyblocks_banners",
+                ].includes(event.detail.table)
+            )
+                return;
+            window.clearTimeout(achievementRefreshTimer);
+            achievementRefreshTimer = window.setTimeout(
+                () => void renderAchievementLibrary(),
+                120,
+            );
         });
+        await renderAchievementLibrary();
     }
 
     Promise.resolve()
@@ -897,4 +1046,17 @@
             const heading = document.querySelector("h1");
             if (heading) heading.textContent = "Something went wrong";
         });
+
+    let projectRefreshTimer = 0;
+    document.addEventListener("pyblocks:realtime", (event) => {
+        if (
+            page !== "project" ||
+            !["pyblocks_profiles", "pyblocks_projects"].includes(
+                event.detail.table,
+            )
+        )
+            return;
+        window.clearTimeout(projectRefreshTimer);
+        projectRefreshTimer = window.setTimeout(() => void initProject(), 120);
+    });
 })();

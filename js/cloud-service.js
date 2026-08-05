@@ -120,6 +120,11 @@ window.PyBlocksCloud = (() => {
         };
     }
 
+    async function getAccessToken() {
+        await refreshSessionIfNeeded();
+        return session?.access_token || null;
+    }
+
     async function signUp({ username, email, password }) {
         const body = await request("/auth/v1/signup", {
             method: "POST",
@@ -637,6 +642,7 @@ window.PyBlocksCloud = (() => {
     return {
         configured,
         currentUser,
+        getAccessToken,
         signUp,
         signIn,
         signOut,
