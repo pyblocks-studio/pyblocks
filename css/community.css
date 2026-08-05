@@ -126,6 +126,22 @@
     letter-spacing: 0.01em;
 }
 
+.banner-identity-panel {
+    position: relative;
+    isolation: isolate;
+    width: min(560px, 100%);
+    min-height: 190px;
+    padding: 24px 28px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    background: linear-gradient(135deg, var(--surface), #121622);
+}
+
+.banner-identity-panel > :not([data-banner-decoration]) {
+    position: relative;
+    z-index: 2;
+}
+
 .banner-vip {
     position: relative;
     overflow: hidden;
@@ -137,7 +153,7 @@
             transparent 28%
         ),
         linear-gradient(135deg, #241d14, #171a28 55%);
-    box-shadow: 10px 10px 0 #6f542e;
+    box-shadow: 7px 7px 0 #6f542e;
 }
 
 .banner-vip::after {
@@ -172,7 +188,7 @@
         0 0 24px rgb(224 175 104 / 75%);
     opacity: 0;
     pointer-events: none;
-    animation: owner-shooting-star 6s linear infinite;
+    animation: owner-shooting-star 3.1s linear infinite;
 }
 
 .owner-shooting-star::before {
@@ -196,7 +212,7 @@
 .owner-shooting-star-1 {
     top: 4%;
     animation-delay: -1.2s;
-    animation-duration: 5.8s;
+    animation-duration: 2.8s;
 }
 
 .owner-shooting-star-2 {
@@ -204,13 +220,13 @@
     width: 4px;
     height: 4px;
     animation-delay: -4.5s;
-    animation-duration: 7.2s;
+    animation-duration: 3.4s;
 }
 
 .owner-shooting-star-3 {
     top: -16%;
     animation-delay: -6.3s;
-    animation-duration: 8.6s;
+    animation-duration: 4s;
 }
 
 .owner-shooting-star-4 {
@@ -218,7 +234,48 @@
     width: 3px;
     height: 3px;
     animation-delay: -2.8s;
-    animation-duration: 9.4s;
+    animation-duration: 4.5s;
+}
+
+.owner-shooting-star-5 {
+    top: 17%;
+    animation-delay: -0.4s;
+    animation-duration: 3.6s;
+}
+.owner-shooting-star-6 {
+    top: 72%;
+    animation-delay: -2.2s;
+    animation-duration: 3.9s;
+}
+.owner-shooting-star-7 {
+    top: -8%;
+    animation-delay: -3.1s;
+    animation-duration: 4.3s;
+}
+.owner-shooting-star-8 {
+    top: 45%;
+    animation-delay: -1.7s;
+    animation-duration: 3.2s;
+}
+.owner-shooting-star-9 {
+    top: 84%;
+    animation-delay: -0.9s;
+    animation-duration: 4.1s;
+}
+.owner-shooting-star-10 {
+    top: 9%;
+    animation-delay: -2.7s;
+    animation-duration: 3.5s;
+}
+.owner-shooting-star-11 {
+    top: 54%;
+    animation-delay: -3.6s;
+    animation-duration: 4.4s;
+}
+.owner-shooting-star-12 {
+    top: 28%;
+    animation-delay: -1.3s;
+    animation-duration: 3.8s;
 }
 
 @keyframes owner-shooting-star {
@@ -234,7 +291,7 @@
     }
     100% {
         opacity: 0;
-        transform: translate3d(145vw, 280px, 0);
+        transform: translate3d(780px, 210px, 0);
     }
 }
 
@@ -268,6 +325,29 @@
 .profile-hero .owner-badge {
     position: relative;
     top: 7px;
+}
+
+.profile-rank-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.rank-badge {
+    width: max-content;
+    padding: 6px 10px;
+    border: 1px solid #9eb9ff;
+    background: linear-gradient(#4a659f, #263862);
+    color: #eef3ff;
+    font:
+        900 0.75rem Consolas,
+        monospace;
+    letter-spacing: 0.12em;
+    box-shadow: 3px 3px 0 #11182b;
+}
+
+.profile-rank-tags:not(:empty) + .equipped-banner-label {
+    margin-top: 22px;
 }
 
 .stats-grid {
@@ -610,38 +690,66 @@
     background: #07160e;
 }
 
-.circuit-pattern {
+.circuit-trace {
     position: absolute !important;
-    inset: 0;
     z-index: 0 !important;
-    opacity: 0.72;
+    width: 115px;
+    height: 38px;
+    color: #164b2b;
+    border-top: 3px solid currentcolor;
+    border-right: 3px solid currentcolor;
     pointer-events: none;
-    background:
-        radial-gradient(circle, #caffdd 0 3px, transparent 4px) 13% 28% / 150px
-            90px,
-        linear-gradient(
-                90deg,
-                transparent 0 18%,
-                #195d35 18% 20%,
-                transparent 20%
-            )
-            0 0 / 190px 110px,
-        linear-gradient(
-                0deg,
-                transparent 0 54%,
-                #195d35 54% 57%,
-                transparent 57%
-            )
-            0 0 / 190px 110px,
-        linear-gradient(
-                90deg,
-                transparent 0 62%,
-                #48f18b 62% 64%,
-                transparent 64%
-            )
-            0 0 / 260px 140px;
-    filter: drop-shadow(0 0 3px #46ef8a);
-    animation: circuitry-pulse 3.2s linear infinite;
+    opacity: 0.78;
+    filter: drop-shadow(0 0 1px #0a2b17);
+    animation: circuitry-pulse 4.8s ease-in-out infinite;
+}
+
+.circuit-trace::after {
+    content: "";
+    position: absolute;
+    right: -6px;
+    bottom: -6px;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: currentcolor;
+    box-shadow: 0 0 0 2px #07160e;
+}
+
+.circuit-trace-1 {
+    left: -16px;
+    top: 18px;
+}
+.circuit-trace-2 {
+    right: 24px;
+    top: 10px;
+    transform: rotate(90deg);
+    animation-delay: -0.8s;
+}
+.circuit-trace-3 {
+    left: 32%;
+    bottom: -5px;
+    transform: rotate(180deg);
+    animation-delay: -1.6s;
+}
+.circuit-trace-4 {
+    right: -18px;
+    bottom: 28px;
+    transform: rotate(270deg);
+    animation-delay: -2.4s;
+}
+.circuit-trace-5 {
+    left: 8%;
+    bottom: 24px;
+    width: 82px;
+    animation-delay: -3.2s;
+}
+.circuit-trace-6 {
+    right: 30%;
+    top: 54px;
+    width: 76px;
+    transform: rotate(180deg);
+    animation-delay: -4s;
 }
 
 .banner-dynamic {
@@ -699,13 +807,15 @@
 @keyframes circuitry-pulse {
     0%,
     100% {
-        opacity: 0.45;
-        filter: brightness(0.7);
+        color: #164b2b;
+        opacity: 0.6;
+        filter: brightness(0.72);
     }
-    45%,
-    60% {
-        opacity: 0.95;
-        filter: brightness(1.7) drop-shadow(0 0 5px #aaffca);
+    18%,
+    30% {
+        color: #baffce;
+        opacity: 1;
+        filter: brightness(1.8) drop-shadow(0 0 6px #77ff9f);
     }
 }
 

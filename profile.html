@@ -30,13 +30,23 @@
                         <img alt="" data-avatar-image hidden />
                         <span class="default-avatar" aria-hidden="true"></span>
                     </div>
-                    <div>
+                    <div class="banner-identity-panel" data-banner-surface>
                         <p id="public-title" class="eyebrow">Loading…</p>
                         <h1 id="public-display-name">Loading…</h1>
                         <strong
                             id="public-username"
                             class="profile-handle"
                         ></strong>
+                        <div id="public-rank-tags" class="profile-rank-tags">
+                            <span id="owner-badge" class="owner-badge" hidden
+                                >OWNER</span
+                            >
+                            <span
+                                id="public-rank-badge"
+                                class="rank-badge"
+                                hidden
+                            ></span>
+                        </div>
                         <div
                             id="public-banner-label"
                             class="equipped-banner-label"
@@ -44,7 +54,6 @@
                         <p id="public-joined"></p>
                     </div>
                 </div>
-                <span id="owner-badge" class="owner-badge" hidden>OWNER</span>
             </section>
             <section class="dashboard-section">
                 <div class="section-row">

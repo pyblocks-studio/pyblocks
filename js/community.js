@@ -53,14 +53,15 @@
     }
 
     function decorateBanner(hero, bannerId = "default") {
-        [...hero.classList]
+        const surface = hero.querySelector("[data-banner-surface]") || hero;
+        [...surface.classList]
             .filter((name) => name.startsWith("banner-"))
-            .forEach((name) => hero.classList.remove(name));
-        hero.classList.add(`banner-${bannerId || "default"}`);
-        hero.querySelectorAll("[data-banner-decoration]").forEach((node) =>
-            node.remove(),
-        );
-        const count = bannerId === "vip" ? 4 : bannerId === "dynamic" ? 5 : 0;
+            .forEach((name) => surface.classList.remove(name));
+        surface.classList.add(`banner-${bannerId || "default"}`);
+        surface
+            .querySelectorAll("[data-banner-decoration]")
+            .forEach((node) => node.remove());
+        const count = bannerId === "vip" ? 12 : bannerId === "dynamic" ? 5 : 0;
         for (let index = 1; index <= count; index += 1) {
             const decoration = document.createElement("span");
             decoration.className =
@@ -69,14 +70,16 @@
                     : `dynamic-ripple dynamic-ripple-${index}`;
             decoration.dataset.bannerDecoration = "";
             decoration.setAttribute("aria-hidden", "true");
-            hero.append(decoration);
+            surface.append(decoration);
         }
         if (bannerId === "circuitry") {
-            const circuit = document.createElement("span");
-            circuit.className = "circuit-pattern";
-            circuit.dataset.bannerDecoration = "";
-            circuit.setAttribute("aria-hidden", "true");
-            hero.append(circuit);
+            for (let index = 1; index <= 6; index += 1) {
+                const circuit = document.createElement("span");
+                circuit.className = `circuit-trace circuit-trace-${index}`;
+                circuit.dataset.bannerDecoration = "";
+                circuit.setAttribute("aria-hidden", "true");
+                surface.append(circuit);
+            }
         }
     }
 
@@ -261,7 +264,12 @@
             const badge = document.createElement("span");
             badge.className = "owner-badge";
             badge.textContent = "OWNER";
-            document.getElementById("dashboard-username").after(badge);
+            document.getElementById("dashboard-rank-tags").append(badge);
+        } else if (profile.rank_tag) {
+            const badge = document.createElement("span");
+            badge.className = "rank-badge";
+            badge.textContent = profile.rank_tag;
+            document.getElementById("dashboard-rank-tags").append(badge);
         }
         const equippedBanner =
             profile.equipped_banner_id ||
@@ -450,6 +458,10 @@
                 .getElementById("profile-hero")
                 .classList.add("owner-profile");
             document.getElementById("owner-badge").hidden = false;
+        } else if (profile.rank_tag) {
+            const badge = document.getElementById("public-rank-badge");
+            badge.textContent = profile.rank_tag;
+            badge.hidden = false;
         }
         const equippedBanner =
             profile.equipped_banner_id ||

@@ -3,7 +3,7 @@
 window.PyBlocksCloud = (() => {
     const SESSION_KEY = "pyblocks-cloud-session-v1";
     const PROFILE_FIELDS =
-        "user_id,username,display_name,avatar_path,role,active_seconds,joined_at,updated_at,equipped_banner_id";
+        "user_id,username,display_name,avatar_path,role,rank_tag,active_seconds,joined_at,updated_at,equipped_banner_id";
     const AVATAR_BUCKET = "pyblocks-avatars";
     const MAX_AVATAR_BYTES = 2 * 1024 * 1024;
     const REMIX_FIELDS =
@@ -573,6 +573,13 @@ window.PyBlocksCloud = (() => {
         });
     }
 
+    function setRankTag(username, rankTag) {
+        return rpc("pyblocks_set_rank_tag", {
+            target_username: username,
+            new_rank_tag: rankTag,
+        });
+    }
+
     async function publishAnnouncement(message) {
         const user = currentUser();
         if (!user) throw new Error("Sign in to announce.");
@@ -634,6 +641,7 @@ window.PyBlocksCloud = (() => {
         revokeAdmin,
         grantBanner,
         giveAdminGift,
+        setRankTag,
         publishAnnouncement,
         getActiveAnnouncement,
         compress,

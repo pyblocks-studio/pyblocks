@@ -101,6 +101,7 @@
             <header><div><small>PYBLOCKS CONTROL</small><h2>Admin</h2></div><button type="button" data-admin-close aria-label="Close admin panel">×</button></header>
             <section><h3>Global announcement</h3><form data-announce><textarea maxlength="500" required placeholder="Message everyone…"></textarea><button class="admin-primary" type="submit">ANNOUNCE</button></form></section>
             <section><h3>Grant a banner</h3><form data-banner-gift><input name="username" placeholder="Username" required><select name="banner"></select><select name="audience"><option value="user">This user</option><option value="active">All active users</option><option value="all">All users</option></select><button class="admin-primary" type="submit">GIVE BANNER</button></form><button type="button" class="admin-secondary" data-gift-achievement>Give “Free Giveaway” gift</button></section>
+            <section><h3>Profile rank tag</h3><form data-rank-tag><input name="username" placeholder="Username" required><input name="rank" maxlength="20" placeholder="ADMIN, MODERATOR, HELPER"><button class="admin-primary" type="submit">SET TAG</button></form><p class="admin-muted">Leave the tag blank to remove it. OWNER and PYBLOCKS CREATOR cannot be assigned.</p></section>
             <section data-owner-access ${owner ? "" : "hidden"}><h3>Admin access</h3><form data-admin-search><input name="username" placeholder="Type a username" required><button class="admin-secondary" type="submit">SEARCH</button></form><div class="admin-user-search" data-admin-result></div><div data-admin-list></div></section>
             <p class="admin-feedback" role="status"></p>`;
         document.body.append(tab, drawer);
@@ -166,6 +167,23 @@
                     given
                         ? "Gift and Dynamic banner awarded."
                         : "User not found.",
+                );
+            });
+        drawer
+            .querySelector("[data-rank-tag]")
+            .addEventListener("submit", async (event) => {
+                event.preventDefault();
+                const values = Object.fromEntries(
+                    new window.FormData(event.currentTarget),
+                );
+                const changed = await cloud.setRankTag(
+                    values.username,
+                    values.rank,
+                );
+                setFeedback(
+                    changed
+                        ? `Rank tag updated for @${values.username}.`
+                        : "User not found, or the owner tag is permanent.",
                 );
             });
         if (owner) {
