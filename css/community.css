@@ -678,7 +678,23 @@
 
 .banner-circuitry {
     border-color: #43d17a;
-    background: #07160e;
+    background:
+        radial-gradient(
+            circle at 50% 50%,
+            rgb(22 82 45 / 24%),
+            transparent 62%
+        ),
+        linear-gradient(135deg, #06170d, #081d12);
+}
+
+.circuitry-canvas {
+    position: absolute !important;
+    inset: 0;
+    z-index: 0 !important;
+    width: 100%;
+    height: 100%;
+    opacity: 0.92;
+    pointer-events: none;
 }
 
 .circuit-trace {

@@ -52,6 +52,191 @@
         image.src = `${url}?v=${encodeURIComponent(profile.updated_at || profile.avatar_path)}`;
     }
 
+    function addCircuitryDesign(surface) {
+        const canvas = document.createElement("canvas");
+        canvas.className = "circuitry-canvas";
+        canvas.dataset.bannerDecoration = "";
+        canvas.setAttribute("aria-hidden", "true");
+        surface.append(canvas);
+        const context = canvas.getContext("2d");
+        const paths = [
+            [
+                [0, 0.18],
+                [0.13, 0.18],
+                [0.13, 0.04],
+                [0.29, 0.04],
+                [0.29, 0.16],
+            ],
+            [
+                [0.05, 0],
+                [0.05, 0.1],
+                [0.18, 0.1],
+                [0.18, 0.29],
+                [0.3, 0.29],
+            ],
+            [
+                [0.35, 0],
+                [0.35, 0.17],
+                [0.49, 0.17],
+            ],
+            [
+                [0.62, 0],
+                [0.62, 0.19],
+                [0.52, 0.19],
+            ],
+            [
+                [0.78, 0],
+                [0.78, 0.14],
+                [0.91, 0.14],
+            ],
+            [
+                [1, 0.24],
+                [0.88, 0.24],
+                [0.88, 0.1],
+            ],
+            [
+                [0, 0.48],
+                [0.14, 0.48],
+                [0.14, 0.37],
+                [0.29, 0.37],
+            ],
+            [
+                [0.05, 1],
+                [0.05, 0.7],
+                [0.18, 0.7],
+                [0.18, 0.54],
+            ],
+            [
+                [0.23, 1],
+                [0.23, 0.79],
+                [0.33, 0.79],
+                [0.33, 0.59],
+            ],
+            [
+                [0.31, 0.31],
+                [0.41, 0.31],
+                [0.41, 0.52],
+                [0.3, 0.52],
+            ],
+            [
+                [0.39, 0.54],
+                [0.57, 0.54],
+                [0.57, 0.4],
+            ],
+            [
+                [0.48, 1],
+                [0.48, 0.82],
+                [0.58, 0.82],
+                [0.58, 0.68],
+            ],
+            [
+                [0.61, 0.52],
+                [0.75, 0.52],
+                [0.75, 0.29],
+                [0.88, 0.29],
+            ],
+            [
+                [1, 0.61],
+                [0.84, 0.61],
+                [0.84, 0.47],
+                [0.93, 0.47],
+            ],
+            [
+                [1, 0.82],
+                [0.72, 0.82],
+                [0.72, 0.69],
+            ],
+            [
+                [0.6, 1],
+                [0.6, 0.88],
+                [0.68, 0.88],
+            ],
+            [
+                [0.15, 0.69],
+                [0.27, 0.69],
+                [0.27, 0.86],
+            ],
+            [
+                [0.68, 0.38],
+                [0.68, 0.5],
+                [0.79, 0.5],
+            ],
+        ];
+        const reducedMotion = window.matchMedia(
+            "(prefers-reduced-motion: reduce)",
+        ).matches;
+
+        function tracePath(points, width, height) {
+            context.beginPath();
+            context.moveTo(points[0][0] * width, points[0][1] * height);
+            for (let index = 1; index < points.length; index += 1) {
+                const current = points[index];
+                if (index === points.length - 1) {
+                    context.lineTo(current[0] * width, current[1] * height);
+                } else {
+                    const next = points[index + 1];
+                    context.quadraticCurveTo(
+                        current[0] * width,
+                        current[1] * height,
+                        ((current[0] + next[0]) / 2) * width,
+                        ((current[1] + next[1]) / 2) * height,
+                    );
+                }
+            }
+        }
+
+        function draw(time = 0) {
+            if (!canvas.isConnected) return;
+            const width = Math.max(1, canvas.clientWidth);
+            const height = Math.max(1, canvas.clientHeight);
+            const ratio = Math.min(window.devicePixelRatio || 1, 2);
+            const pixelWidth = Math.round(width * ratio);
+            const pixelHeight = Math.round(height * ratio);
+            if (canvas.width !== pixelWidth || canvas.height !== pixelHeight) {
+                canvas.width = pixelWidth;
+                canvas.height = pixelHeight;
+            }
+            context.setTransform(ratio, 0, 0, ratio, 0, 0);
+            context.clearRect(0, 0, width, height);
+            context.lineCap = "round";
+            context.lineJoin = "round";
+            paths.forEach((points, index) => {
+                tracePath(points, width, height);
+                context.setLineDash([]);
+                context.lineWidth = 2;
+                context.strokeStyle = "#174f2d";
+                context.shadowBlur = 0;
+                context.stroke();
+
+                tracePath(points, width, height);
+                context.setLineDash([Math.max(18, width * 0.055), width * 1.1]);
+                context.lineDashOffset = -(time * 0.065 + index * width * 0.08);
+                context.lineWidth = 2.4;
+                context.strokeStyle = "#b9ffd0";
+                context.shadowColor = "#65ff98";
+                context.shadowBlur = 8;
+                context.stroke();
+
+                context.setLineDash([]);
+                context.shadowBlur = 5;
+                context.fillStyle = "#49e17b";
+                for (const point of [points[0], points.at(-1)]) {
+                    context.beginPath();
+                    context.arc(
+                        point[0] * width,
+                        point[1] * height,
+                        3.2,
+                        0,
+                        Math.PI * 2,
+                    );
+                    context.fill();
+                }
+            });
+            if (!reducedMotion) window.requestAnimationFrame(draw);
+        }
+        draw();
+    }
+
     function decorateBanner(hero, bannerId = "default") {
         const surface = hero;
         [...surface.classList]
@@ -73,13 +258,7 @@
             surface.append(decoration);
         }
         if (bannerId === "circuitry") {
-            for (let index = 1; index <= 18; index += 1) {
-                const circuit = document.createElement("span");
-                circuit.className = `circuit-trace circuit-trace-${index}`;
-                circuit.dataset.bannerDecoration = "";
-                circuit.setAttribute("aria-hidden", "true");
-                surface.append(circuit);
-            }
+            addCircuitryDesign(surface);
         }
     }
 
