@@ -219,11 +219,81 @@ window.PyBlocksCloud = (() => {
     }
 
     async function uploadAvatar(file) {
-        const allowedTypes = new Set(["image/png", "image/jpeg", "image/webp"]);
+        const allowedTypes = new Set([
+            "image/png",
+            "image/jpeg",
+            "image/webp",
+            "image/svg+xml",
+        ]);
         if (!file || !allowedTypes.has(file.type))
-            throw new Error("Choose a PNG, JPEG, or WebP image.");
+            throw new Error("Choose a PNG, JPEG, WebP, or SVG image.");
         if (file.size > MAX_AVATAR_BYTES)
             throw new Error("Profile pictures must be 2 MB or smaller.");
+        let uploadFile = file;
+        if (file.type === "image/svg+xml") {
+            const source = await file.text();
+            if (/<!doctype|<!entity/i.test(source))
+                throw new Error("That SVG contains unsupported declarations.");
+            const documentNode = new window.DOMParser().parseFromString(
+                source,
+                "image/svg+xml",
+            );
+            if (
+                documentNode.querySelector("parsererror") ||
+                documentNode.documentElement.localName !== "svg"
+            )
+                throw new Error("That SVG could not be read safely.");
+            const forbidden = documentNode.querySelector(
+                "script, foreignObject, iframe, object, embed, audio, video, animate, animateMotion, animateTransform, set, discard",
+            );
+            if (forbidden)
+                throw new Error(
+                    "SVG profile pictures cannot contain scripts or embedded documents.",
+                );
+            for (const style of documentNode.querySelectorAll("style")) {
+                if (
+                    /javascript:|@import|expression\s*\(|behavior\s*:|-moz-binding|url\s*\(\s*['"]?(?!#)/i.test(
+                        style.textContent || "",
+                    )
+                )
+                    throw new Error(
+                        "SVG profile pictures cannot load external styles.",
+                    );
+            }
+            for (const element of documentNode.querySelectorAll("*")) {
+                for (const attribute of [...element.attributes]) {
+                    const name = attribute.name.toLowerCase();
+                    const value = attribute.value.trim();
+                    if (name.startsWith("on"))
+                        throw new Error(
+                            "SVG profile pictures cannot contain event handlers.",
+                        );
+                    if (
+                        (name === "href" || name === "xlink:href") &&
+                        value &&
+                        !value.startsWith("#")
+                    )
+                        throw new Error(
+                            "SVG profile pictures cannot load external files.",
+                        );
+                    if (
+                        name === "style" &&
+                        /javascript:|@import|expression\s*\(|behavior\s*:|-moz-binding|url\s*\(\s*['"]?(?!#)/i.test(
+                            value,
+                        )
+                    )
+                        throw new Error(
+                            "SVG profile pictures cannot load external styles.",
+                        );
+                }
+            }
+            uploadFile = new window.Blob(
+                [new window.XMLSerializer().serializeToString(documentNode)],
+                { type: "image/svg+xml" },
+            );
+            if (uploadFile.size > MAX_AVATAR_BYTES)
+                throw new Error("Profile pictures must be 2 MB or smaller.");
+        }
         const user = currentUser();
         if (!user) throw new Error("Sign in to upload a profile picture.");
         const avatarPath = `${user.id}/avatar`;
@@ -232,11 +302,11 @@ window.PyBlocksCloud = (() => {
             {
                 method: "POST",
                 headers: {
-                    "Content-Type": file.type,
+                    "Content-Type": uploadFile.type,
                     "x-upsert": "true",
                     "cache-control": "3600",
                 },
-                body: file,
+                body: uploadFile,
             },
             true,
         );
@@ -597,6 +667,13 @@ window.PyBlocksCloud = (() => {
         });
     }
 
+    function grantAchievement(username, achievementId) {
+        return rpc("pyblocks_grant_achievement", {
+            target_username: username,
+            target_achievement: achievementId,
+        });
+    }
+
     function setRankTag(username, rankTag) {
         return rpc("pyblocks_set_rank_tag", {
             target_username: username,
@@ -678,6 +755,7 @@ window.PyBlocksCloud = (() => {
         grantAllBanners,
         revokeAllBanners,
         giveAdminGift,
+        grantAchievement,
         setRankTag,
         publishAnnouncement,
         getActiveAnnouncements,

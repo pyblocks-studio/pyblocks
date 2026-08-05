@@ -1082,7 +1082,7 @@
     overflow: hidden;
     border-color: #f49ac2;
     background: #003366 url("../assets/images/banners/nyan-cat.gif") center /
-        auto 78% no-repeat;
+        cover no-repeat;
     box-shadow: 7px 7px 0 #372b7b;
 }
 
@@ -1181,22 +1181,160 @@
 }
 
 .banner-blueprint {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
     border-color: #69baff;
     background-color: #092f5d;
     background-image:
         linear-gradient(rgb(111 190 255 / 24%) 1px, transparent 1px),
-        linear-gradient(90deg, rgb(111 190 255 / 24%) 1px, transparent 1px),
-        linear-gradient(
-            135deg,
-            transparent 47%,
-            #76c7ff 48% 49%,
-            transparent 50%
-        );
+        linear-gradient(90deg, rgb(111 190 255 / 24%) 1px, transparent 1px);
     background-size:
         22px 22px,
-        22px 22px,
-        110px 110px;
+        22px 22px;
     box-shadow: 7px 7px 0 #174c7b;
+}
+
+.banner-blueprint::before {
+    content: "";
+    position: absolute;
+    inset: -80%;
+    z-index: 0;
+    background: repeating-linear-gradient(
+        135deg,
+        transparent 0 52px,
+        rgb(118 199 255 / 28%) 53px 55px,
+        transparent 56px 108px
+    );
+    pointer-events: none;
+    animation: blueprint-diagonal-travel 8s linear infinite;
+}
+
+.blueprint-module {
+    position: absolute !important;
+    left: -150px;
+    top: var(--blueprint-top, 18%);
+    z-index: 0 !important;
+    width: 112px;
+    height: 62px;
+    border: 2px solid rgb(139 211 255 / 68%);
+    background: rgb(8 48 93 / 72%);
+    box-shadow:
+        inset 0 0 0 3px rgb(105 186 255 / 9%),
+        0 0 18px rgb(59 167 255 / 16%);
+    pointer-events: none;
+    animation: blueprint-module-travel 17s linear infinite;
+}
+
+.blueprint-module::before,
+.blueprint-module::after,
+.blueprint-module i,
+.blueprint-module b {
+    content: "";
+    position: absolute;
+    display: block;
+    border: 2px solid rgb(170 225 255 / 72%);
+}
+
+.blueprint-module::before {
+    left: 9px;
+    top: 9px;
+    width: 31px;
+    height: 16px;
+    border-radius: 8px 3px 3px 8px;
+}
+
+.blueprint-module::after {
+    right: 10px;
+    bottom: 8px;
+    width: 40px;
+    height: 20px;
+    border-radius: 3px 10px 10px 3px;
+}
+
+.blueprint-module i:nth-child(1) {
+    left: 49px;
+    top: 11px;
+    width: 18px;
+    height: 13px;
+    border-radius: 50%;
+}
+
+.blueprint-module i:nth-child(2) {
+    right: 12px;
+    top: 9px;
+    width: 21px;
+    height: 15px;
+}
+
+.blueprint-module i:nth-child(3) {
+    left: 12px;
+    bottom: 9px;
+    width: 24px;
+    height: 15px;
+    transform: skewX(-16deg);
+}
+
+.blueprint-module b:nth-of-type(1) {
+    left: 42px;
+    bottom: 16px;
+    width: 18px;
+    border-width: 1px 0 0;
+}
+
+.blueprint-module b:nth-of-type(2) {
+    right: 26px;
+    top: 28px;
+    height: 13px;
+    border-width: 0 0 0 1px;
+}
+
+.blueprint-module-2,
+.blueprint-module-6 {
+    --blueprint-top: 58%;
+    transform: scale(0.76);
+    animation-delay: -5s;
+    animation-duration: 21s;
+}
+
+.blueprint-module-3,
+.blueprint-module-7 {
+    --blueprint-top: 34%;
+    transform: scale(0.58);
+    opacity: 0.62;
+    animation-delay: -11s;
+    animation-duration: 25s;
+}
+
+.blueprint-module-4,
+.blueprint-module-8 {
+    --blueprint-top: 73%;
+    transform: scale(0.9);
+    animation-delay: -15s;
+    animation-duration: 19s;
+}
+
+.blueprint-module-5 {
+    --blueprint-top: 8%;
+    animation-delay: -8s;
+}
+
+@keyframes blueprint-module-travel {
+    from {
+        translate: 0 0;
+    }
+    to {
+        translate: 950px -18px;
+    }
+}
+
+@keyframes blueprint-diagonal-travel {
+    from {
+        transform: translate3d(-54px, -54px, 0);
+    }
+    to {
+        transform: translate3d(54px, 54px, 0);
+    }
 }
 
 .banner-glitch {
@@ -1689,6 +1827,30 @@
     transform: translateX(80px);
 }
 
+.banner-preview-scale .blueprint-module {
+    left: 8%;
+    translate: none;
+}
+
+.banner-preview-scale .blueprint-module-2,
+.banner-preview-scale .blueprint-module-6 {
+    left: 58%;
+}
+
+.banner-preview-scale .blueprint-module-3,
+.banner-preview-scale .blueprint-module-7 {
+    left: 34%;
+}
+
+.banner-preview-scale .blueprint-module-4,
+.banner-preview-scale .blueprint-module-8 {
+    left: 74%;
+}
+
+.banner-preview-scale .blueprint-module-5 {
+    left: 18%;
+}
+
 .banner-preview-scale .orbit-particle {
     transform: rotate(45deg) translateX(90px);
 }
@@ -1993,8 +2155,10 @@
 
 @media (prefers-reduced-motion: reduce) {
     .banner-pride,
+    .banner-blueprint::before,
     .banner-glitch::before,
     .banner-glitch::after,
+    .blueprint-module,
     .circuit-pattern,
     .dynamic-ripple {
         animation: none;

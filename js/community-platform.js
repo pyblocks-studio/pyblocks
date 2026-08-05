@@ -131,6 +131,7 @@
             <header><div><small>PYBLOCKS CONTROL</small><h2>Admin</h2></div><button type="button" data-admin-close aria-label="Close admin panel">×</button></header>
             <section><h3>Global announcement</h3><form data-announce><textarea maxlength="500" required placeholder="Message everyone…"></textarea><button class="admin-primary" type="submit">ANNOUNCE</button></form></section>
             <section><h3>Manage banners</h3><form data-banner-gift><input name="username" placeholder="Target username" required><select name="banner"></select><select name="audience"><option value="user">This user</option><option value="active">All active users</option><option value="all">All users</option></select><div class="admin-action-grid"><button class="admin-primary" type="submit">GIVE BANNER</button><button class="admin-secondary" type="button" data-revoke-banner>REVOKE BANNER</button><button class="admin-secondary" type="button" data-give-all-banners>GIVE ALL BANNERS</button><button class="danger-action" type="button" data-revoke-all-banners>REVOKE ALL BANNERS</button></div></form><p class="admin-muted">Revoke and all-banner actions only affect the typed username. Achievement banners remain protected.</p><button type="button" class="admin-secondary" data-gift-achievement>Give “Free Giveaway” gift</button></section>
+            <section><h3>Give achievement</h3><form data-achievement-gift><input name="username" placeholder="Target username" required><select name="achievement"></select><button class="admin-primary" type="submit">GIVE ACHIEVEMENT</button></form><p class="admin-muted">The achievement and its banner reward, when present, unlock immediately.</p></section>
             <section><h3>Profile rank tag</h3><form data-rank-tag><input name="username" placeholder="Username" required><input name="rank" maxlength="20" placeholder="ADMIN, MODERATOR, HELPER"><button class="admin-primary" type="submit">SET TAG</button></form><p class="admin-muted">Leave the tag blank to remove it. OWNER and PYBLOCKS CREATOR cannot be assigned.</p></section>
             <section data-owner-access ${owner ? "" : "hidden"}><h3>Admin access</h3><form data-admin-search><input name="username" placeholder="Type a username" required><button class="admin-secondary" type="submit">SEARCH</button></form><div class="admin-user-search" data-admin-result></div><div data-admin-list></div></section>
             <p class="admin-feedback" role="status"></p>`;
@@ -160,6 +161,14 @@
                 option.textContent = banner.name;
                 bannerSelect.append(option);
             });
+        const achievements = await cloud.listAchievements();
+        const achievementSelect = drawer.querySelector("[name='achievement']");
+        achievements.forEach((achievement) => {
+            const option = document.createElement("option");
+            option.value = achievement.id;
+            option.textContent = achievement.name;
+            achievementSelect.append(option);
+        });
         drawer
             .querySelector("[data-announce]")
             .addEventListener("submit", async (event) => {
@@ -184,6 +193,23 @@
                 );
                 setFeedback(
                     `Banner granted to ${count} account${count === 1 ? "" : "s"}.`,
+                );
+            });
+        drawer
+            .querySelector("[data-achievement-gift]")
+            .addEventListener("submit", async (event) => {
+                event.preventDefault();
+                const values = Object.fromEntries(
+                    new window.FormData(event.currentTarget),
+                );
+                const given = await cloud.grantAchievement(
+                    values.username.trim(),
+                    values.achievement,
+                );
+                setFeedback(
+                    given
+                        ? `${achievementSelect.selectedOptions[0].textContent} awarded to @${values.username.trim()}.`
+                        : "User or achievement not found.",
                 );
             });
         const bannerForm = drawer.querySelector("[data-banner-gift]");

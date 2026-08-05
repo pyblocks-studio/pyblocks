@@ -257,6 +257,7 @@
             og: ["og-gear", 14],
             uwu: ["uwu-cat", 10],
             hacker: ["hacker-line", 14],
+            blueprint: ["blueprint-module", 8],
             orbit: ["orbit-particle", 9],
             echo: ["echo-wave", 6],
         };
@@ -276,6 +277,11 @@
                         : index % 2
                           ? "01101000 01100001 01100011 01101011"
                           : "root@pyblocks:~$ access granted";
+            if (bannerId === "blueprint")
+                decoration.innerHTML = `
+                    <i></i><i></i><i></i>
+                    <b></b><b></b>
+                `;
             surface.append(decoration);
         }
         if (bannerId === "circuitry") {
