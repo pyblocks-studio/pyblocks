@@ -693,11 +693,12 @@
 .circuit-trace {
     position: absolute !important;
     z-index: 0 !important;
-    width: 115px;
-    height: 38px;
+    width: 108px;
+    height: 34px;
     color: #164b2b;
-    border-top: 3px solid currentcolor;
-    border-right: 3px solid currentcolor;
+    border-top: 2px solid currentcolor;
+    border-right: 2px solid currentcolor;
+    border-radius: 0 7px 0 0;
     pointer-events: none;
     opacity: 0.78;
     filter: drop-shadow(0 0 1px #0a2b17);
@@ -707,49 +708,118 @@
 .circuit-trace::after {
     content: "";
     position: absolute;
-    right: -6px;
-    bottom: -6px;
-    width: 9px;
-    height: 9px;
+    right: -4px;
+    bottom: -4px;
+    width: 7px;
+    height: 7px;
     border-radius: 50%;
     background: currentcolor;
     box-shadow: 0 0 0 2px #07160e;
 }
 
+.circuit-trace:nth-of-type(3n)::before {
+    content: "";
+    position: absolute;
+    top: -2px;
+    left: 42%;
+    width: 2px;
+    height: 25px;
+    background: currentcolor;
+    border-radius: 2px;
+}
+
 .circuit-trace-1 {
-    left: -16px;
-    top: 18px;
+    left: -18px;
+    top: 12px;
+    width: 150px;
 }
 .circuit-trace-2 {
-    right: 24px;
-    top: 10px;
+    left: 21%;
+    top: 4px;
+    height: 58px;
     transform: rotate(90deg);
-    animation-delay: -0.8s;
+    animation-delay: -0.35s;
 }
 .circuit-trace-3 {
-    left: 32%;
-    bottom: -5px;
-    transform: rotate(180deg);
-    animation-delay: -1.6s;
+    right: 5%;
+    top: 8px;
+    width: 118px;
+    animation-delay: -0.7s;
 }
 .circuit-trace-4 {
-    right: -18px;
-    bottom: 28px;
-    transform: rotate(270deg);
-    animation-delay: -2.4s;
+    right: -22px;
+    top: 34%;
+    width: 160px;
+    transform: rotate(90deg);
+    animation-delay: -1.05s;
 }
 .circuit-trace-5 {
-    left: 8%;
-    bottom: 24px;
-    width: 82px;
-    animation-delay: -3.2s;
+    right: 17%;
+    bottom: -12px;
+    width: 148px;
+    transform: rotate(180deg);
+    animation-delay: -1.4s;
 }
 .circuit-trace-6 {
-    right: 30%;
-    top: 54px;
+    left: 32%;
+    bottom: 5px;
+    width: 95px;
+    transform: rotate(270deg);
+    animation-delay: -1.75s;
+}
+.circuit-trace-7 {
+    left: -28px;
+    bottom: 20px;
+    width: 142px;
+    transform: rotate(180deg);
+    animation-delay: -2.1s;
+}
+.circuit-trace-8 {
+    left: 9%;
+    top: 43%;
+    width: 82px;
+    transform: rotate(90deg);
+    animation-delay: -2.45s;
+}
+.circuit-trace-9 {
+    left: 38%;
+    top: 36%;
+    width: 132px;
+    animation-delay: -2.8s;
+}
+.circuit-trace-10 {
+    right: 8%;
+    top: 48%;
     width: 76px;
     transform: rotate(180deg);
-    animation-delay: -4s;
+    animation-delay: -3.15s;
+}
+.circuit-trace-11 {
+    left: 48%;
+    top: -18px;
+    width: 72px;
+    transform: rotate(270deg);
+    animation-delay: -3.5s;
+}
+.circuit-trace-12 {
+    left: 17%;
+    bottom: -18px;
+    width: 116px;
+    animation-delay: -3.85s;
+}
+.circuit-trace-13 {
+    right: 31%;
+    bottom: 26px;
+    width: 68px;
+    transform: rotate(90deg);
+    animation-delay: -4.2s;
+}
+.circuit-trace-14 {
+    right: -5px;
+    bottom: 4px;
+    width: 92px;
+    transform: rotate(180deg);
+    animation-delay: -4.55s;
 }
 
 .banner-dynamic {

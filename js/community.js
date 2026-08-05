@@ -73,7 +73,7 @@
             surface.append(decoration);
         }
         if (bannerId === "circuitry") {
-            for (let index = 1; index <= 6; index += 1) {
+            for (let index = 1; index <= 14; index += 1) {
                 const circuit = document.createElement("span");
                 circuit.className = `circuit-trace circuit-trace-${index}`;
                 circuit.dataset.bannerDecoration = "";
