@@ -200,18 +200,19 @@
             context.clearRect(0, 0, width, height);
             context.lineCap = "round";
             context.lineJoin = "round";
+            const detailScale = Math.min(1.3, Math.max(0.28, height / 150));
             paths.forEach((points, index) => {
                 tracePath(points, width, height);
                 context.setLineDash([]);
-                context.lineWidth = 2;
+                context.lineWidth = 2 * detailScale;
                 context.strokeStyle = "#174f2d";
                 context.shadowBlur = 0;
                 context.stroke();
 
                 tracePath(points, width, height);
-                context.setLineDash([Math.max(18, width * 0.055), width * 1.1]);
+                context.setLineDash([Math.max(5, width * 0.055), width * 1.1]);
                 context.lineDashOffset = -(time * 0.065 + index * width * 0.08);
-                context.lineWidth = 2.4;
+                context.lineWidth = 2.4 * detailScale;
                 context.strokeStyle = "#b9ffd0";
                 context.shadowColor = "#65ff98";
                 context.shadowBlur = 8;
@@ -225,7 +226,7 @@
                     context.arc(
                         point[0] * width,
                         point[1] * height,
-                        3.2,
+                        3.2 * detailScale,
                         0,
                         Math.PI * 2,
                     );
@@ -267,6 +268,7 @@
         const preview = document.createElement("span");
         preview.className = `banner-mini banner-mini-${bannerId || "default"}`;
         preview.setAttribute("aria-hidden", "true");
+        decorateBanner(preview, bannerId);
         const text = document.createElement("strong");
         text.textContent = `${(bannerId || "default").toUpperCase()} BANNER`;
         container.replaceChildren(preview, text);
@@ -472,6 +474,10 @@
                 card.disabled = !unlocked;
                 card.className = `banner-card banner-card-${banner.id}`;
                 card.innerHTML = `<span class="banner-card-preview"></span><strong>${banner.name}</strong><small>${unlocked ? banner.description : "Locked — earn or receive this banner."}</small>`;
+                decorateBanner(
+                    card.querySelector(".banner-card-preview"),
+                    banner.id,
+                );
                 if (equippedBanner === banner.id)
                     card.classList.add("is-equipped");
                 card.addEventListener("click", async () => {
