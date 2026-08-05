@@ -681,6 +681,56 @@
     background: #07160e;
 }
 
+.circuit-reference-pattern {
+    position: absolute !important;
+    inset: 0;
+    z-index: 0 !important;
+    background: url("../assets/images/banner-circuitry-pattern.png") center /
+        cover no-repeat;
+    filter: invert(1) hue-rotate(160deg) saturate(1.8);
+    mix-blend-mode: screen;
+    opacity: 0.34;
+    pointer-events: none;
+}
+
+.circuit-reference-pulse {
+    opacity: 0.92;
+    filter: invert(1) hue-rotate(160deg) saturate(2.2) brightness(1.8)
+        drop-shadow(0 0 5px #aaffc5);
+    mask-image: linear-gradient(
+        90deg,
+        transparent 0%,
+        transparent 42%,
+        #000 49%,
+        #000 53%,
+        transparent 60%,
+        transparent 100%
+    );
+    mask-size: 320% 100%;
+    -webkit-mask-image: linear-gradient(
+        90deg,
+        transparent 0%,
+        transparent 42%,
+        #000 49%,
+        #000 53%,
+        transparent 60%,
+        transparent 100%
+    );
+    -webkit-mask-size: 320% 100%;
+    animation: circuit-reference-pulse 5.5s linear infinite;
+}
+
+@keyframes circuit-reference-pulse {
+    from {
+        mask-position: 110% 0;
+        -webkit-mask-position: 110% 0;
+    }
+    to {
+        mask-position: -110% 0;
+        -webkit-mask-position: -110% 0;
+    }
+}
+
 .circuit-trace {
     position: absolute !important;
     z-index: 0 !important;
@@ -955,7 +1005,7 @@
     gap: 14px;
 }
 .banner-card {
-    min-height: 180px;
+    min-height: 158px;
     padding: 14px;
     border: 1px solid var(--border);
     border-radius: 0;
@@ -982,8 +1032,51 @@
     overflow: hidden;
     contain: layout paint;
     clip-path: inset(0);
-    height: 72px;
+    height: 52px;
     background: #171a28;
+}
+
+.banner-card-default .banner-card-preview {
+    background: linear-gradient(135deg, var(--surface-2), #121622);
+}
+.banner-card-pride .banner-card-preview {
+    background: linear-gradient(
+        105deg,
+        #e84b4b,
+        #f0a33a,
+        #e5d94b,
+        #48b96c,
+        #4c85dc,
+        #8f62d2
+    );
+}
+.banner-card-vip .banner-card-preview {
+    background:
+        radial-gradient(circle at 20% 34%, #fff5bc 0 2px, transparent 3px),
+        radial-gradient(circle at 68% 22%, #fff5bc 0 1px, transparent 2px),
+        radial-gradient(circle at 82% 70%, #e0af68 0 2px, transparent 3px),
+        linear-gradient(135deg, #5f451d, #171a28);
+}
+.banner-card-circuitry .banner-card-preview {
+    background: #fff url("../assets/images/banner-circuitry-pattern.png")
+        center / cover no-repeat;
+    filter: invert(1) hue-rotate(160deg) saturate(1.8);
+}
+.banner-card-dynamic .banner-card-preview {
+    background:
+        radial-gradient(
+            circle at 24% 42%,
+            transparent 0 6px,
+            #7aa2f7 7px 8px,
+            transparent 9px
+        ),
+        radial-gradient(
+            circle at 72% 64%,
+            transparent 0 10px,
+            #8cb0ff 11px 12px,
+            transparent 13px
+        ),
+        linear-gradient(135deg, #10233d, #17142f);
 }
 .banner-card-preview.banner-vip {
     box-shadow: none;

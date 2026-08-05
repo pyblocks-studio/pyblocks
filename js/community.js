@@ -73,13 +73,15 @@
             surface.append(decoration);
         }
         if (bannerId === "circuitry") {
-            for (let index = 1; index <= 14; index += 1) {
-                const circuit = document.createElement("span");
-                circuit.className = `circuit-trace circuit-trace-${index}`;
-                circuit.dataset.bannerDecoration = "";
-                circuit.setAttribute("aria-hidden", "true");
-                surface.append(circuit);
-            }
+            const diagram = document.createElement("span");
+            diagram.className = "circuit-reference-pattern";
+            diagram.dataset.bannerDecoration = "";
+            diagram.setAttribute("aria-hidden", "true");
+            surface.append(diagram);
+            const pulse = diagram.cloneNode();
+            pulse.className =
+                "circuit-reference-pattern circuit-reference-pulse";
+            surface.append(pulse);
         }
     }
 
@@ -293,10 +295,6 @@
                 card.disabled = !unlocked;
                 card.className = `banner-card banner-card-${banner.id}`;
                 card.innerHTML = `<span class="banner-card-preview"></span><strong>${banner.name}</strong><small>${unlocked ? banner.description : "Locked — earn or receive this banner."}</small>`;
-                decorateBanner(
-                    card.querySelector(".banner-card-preview"),
-                    banner.id,
-                );
                 if (equippedBanner === banner.id)
                     card.classList.add("is-equipped");
                 card.addEventListener("click", async () => {
