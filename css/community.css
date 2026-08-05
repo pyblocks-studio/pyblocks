@@ -952,12 +952,13 @@
 }
 
 .banner-mini {
+    --banner-preview-scale: 0.08;
     position: relative;
     isolation: isolate;
     display: block;
     flex: 0 0 auto;
     width: 46px;
-    height: 18px;
+    height: 20px;
     overflow: clip;
     contain: strict;
     clip-path: inset(0);
@@ -1025,6 +1026,7 @@
     box-shadow: 4px 4px 0 #315d35;
 }
 .banner-card-preview {
+    --banner-preview-scale: 0.27;
     position: relative;
     isolation: isolate;
     display: block;
@@ -1032,7 +1034,7 @@
     overflow: clip;
     contain: strict;
     clip-path: inset(0);
-    height: 52px;
+    height: 68px;
     background: #171a28;
 }
 
@@ -1100,89 +1102,80 @@
         ),
         linear-gradient(135deg, #10233d, #17142f);
 }
-.banner-card-preview.banner-vip {
-    box-shadow: none;
-}
-.banner-card-preview.banner-vip::after {
-    right: 12%;
-    bottom: -2rem;
-    font-size: 4rem;
-}
-.banner-card-preview .owner-shooting-star::before {
-    width: 42px;
-}
-.banner-card-preview .owner-shooting-star {
-    left: -40px;
-    scale: 0.55;
-    animation-name: preview-shooting-star;
-}
-.banner-card-preview .circuit-trace {
-    scale: 0.38;
-    transform-origin: center;
-}
-.banner-card-preview .dynamic-ripple {
-    width: 6px;
-    height: 6px;
-    animation-name: preview-dynamic-ripple;
+.banner-preview-scale {
+    position: absolute !important;
+    z-index: 0;
+    top: 0;
+    left: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-sizing: border-box;
+    width: 560px;
+    height: 250px;
+    padding: 35px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    transform: scale(var(--banner-preview-scale));
+    transform-origin: top left;
 }
 
-.banner-mini.banner-vip {
-    box-shadow: inset 0 0 5px #e0af68;
-}
-.banner-mini.banner-vip::after {
-    right: 8%;
-    bottom: -0.8rem;
-    font-size: 1.8rem;
-}
-.banner-mini .owner-shooting-star {
-    left: -14px;
-    scale: 0.24;
-    animation-name: preview-shooting-star;
-}
-.banner-mini .owner-shooting-star::before {
-    width: 20px;
-}
-.banner-mini .dynamic-ripple {
-    width: 3px;
-    height: 3px;
-    border-width: 1px;
-    animation-name: preview-dynamic-ripple;
-}
-.banner-mini .circuitry-canvas {
-    opacity: 1;
+.banner-preview-scale > :not([data-banner-decoration]) {
+    position: relative;
+    z-index: 2;
 }
 
-@keyframes preview-shooting-star {
-    0% {
-        opacity: 0;
-        transform: translate3d(0, -10px, 0);
-    }
-    12% {
-        opacity: 1;
-    }
-    72% {
-        opacity: 0.85;
-    }
-    100% {
-        opacity: 0;
-        transform: translate3d(260px, 64px, 0);
-    }
+.banner-preview-identity {
+    display: flex;
+    align-items: center;
+    gap: 22px;
 }
 
-@keyframes preview-dynamic-ripple {
-    0% {
-        opacity: 0;
-        transform: scale(0.2);
-    }
-    12% {
-        opacity: 0.8;
-    }
-    75%,
-    100% {
-        opacity: 0;
-        transform: scale(5);
-    }
+.banner-preview-avatar {
+    width: 90px;
+    height: 90px;
+    border: 4px solid rgb(255 255 255 / 45%);
+    background: rgb(255 255 255 / 18%);
+    box-shadow: 6px 6px 0 rgb(0 0 0 / 24%);
 }
+
+.banner-preview-copy {
+    display: grid;
+    gap: 11px;
+    width: 240px;
+}
+
+.banner-preview-copy i {
+    display: block;
+    height: 13px;
+    background: rgb(255 255 255 / 72%);
+}
+
+.banner-preview-copy i:nth-child(2) {
+    width: 64%;
+    height: 9px;
+    opacity: 0.66;
+}
+
+.banner-preview-copy i:nth-child(3) {
+    width: 46%;
+    height: 16px;
+    background: rgb(255 255 255 / 28%);
+}
+
+.banner-preview-copy i:nth-child(4) {
+    width: 72%;
+    height: 10px;
+    opacity: 0.52;
+}
+
+.banner-preview-action {
+    width: 105px;
+    height: 38px;
+    border: 3px solid rgb(255 255 255 / 42%);
+    background: rgb(255 255 255 / 16%);
+}
+
 .banner-card small {
     color: var(--muted);
     line-height: 1.4;

@@ -241,7 +241,9 @@
     function decorateBanner(hero, bannerId = "default") {
         const surface = hero;
         [...surface.classList]
-            .filter((name) => name.startsWith("banner-"))
+            .filter((name) =>
+                /^banner-(default|vip|pride|circuitry|dynamic)$/.test(name),
+            )
             .forEach((name) => surface.classList.remove(name));
         surface.classList.add(`banner-${bannerId || "default"}`);
         surface
@@ -263,12 +265,30 @@
         }
     }
 
+    function renderBannerPreview(host, bannerId) {
+        if (!host) return;
+        const miniature = document.createElement("span");
+        miniature.className = "banner-preview-scale";
+        miniature.setAttribute("aria-hidden", "true");
+        miniature.innerHTML = `
+            <span class="banner-preview-identity">
+                <span class="banner-preview-avatar"></span>
+                <span class="banner-preview-copy">
+                    <i></i><i></i><i></i><i></i>
+                </span>
+            </span>
+            <span class="banner-preview-action"></span>
+        `;
+        host.replaceChildren(miniature);
+        decorateBanner(miniature, bannerId);
+    }
+
     function bannerLabel(container, bannerId) {
         if (!container) return;
         const preview = document.createElement("span");
         preview.className = `banner-mini banner-mini-${bannerId || "default"}`;
         preview.setAttribute("aria-hidden", "true");
-        decorateBanner(preview, bannerId);
+        renderBannerPreview(preview, bannerId);
         const text = document.createElement("strong");
         text.textContent = `${(bannerId || "default").toUpperCase()} BANNER`;
         container.replaceChildren(preview, text);
@@ -474,7 +494,7 @@
                 card.disabled = !unlocked;
                 card.className = `banner-card banner-card-${banner.id}`;
                 card.innerHTML = `<span class="banner-card-preview"></span><strong>${banner.name}</strong><small>${unlocked ? banner.description : "Locked — earn or receive this banner."}</small>`;
-                decorateBanner(
+                renderBannerPreview(
                     card.querySelector(".banner-card-preview"),
                     banner.id,
                 );
