@@ -676,6 +676,37 @@
     animation: pride-shift 10s ease infinite;
 }
 
+.profile-hero:is(.banner-pride, .banner-nyan, .banner-blueprint)
+    .banner-identity-panel {
+    box-sizing: border-box;
+    padding: clamp(16px, 2.5vw, 26px);
+    border: 1px solid rgb(226 231 255 / 58%);
+    background: rgb(5 10 20 / 82%);
+    box-shadow:
+        6px 6px 0 rgb(3 7 15 / 72%),
+        inset 0 0 28px rgb(32 48 78 / 30%);
+    backdrop-filter: blur(6px);
+}
+
+.profile-hero:is(.banner-pride, .banner-nyan, .banner-blueprint)
+    .banner-identity-panel
+    :is(h1, p, strong, span) {
+    text-shadow:
+        0 2px 2px #02040a,
+        0 0 8px rgb(2 4 10 / 92%);
+}
+
+.profile-hero:is(.banner-pride, .banner-nyan, .banner-blueprint)
+    .banner-identity-panel
+    p {
+    color: #e2e7ff;
+}
+
+.profile-hero:is(.banner-pride, .banner-nyan, .banner-blueprint)
+    .profile-handle {
+    color: #9fdcff;
+}
+
 .banner-circuitry {
     border-color: #43d17a;
     background:
