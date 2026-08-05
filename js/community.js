@@ -162,9 +162,9 @@
                 [0.79, 0.5],
             ],
         ];
-        const reducedMotion = window.matchMedia(
-            "(prefers-reduced-motion: reduce)",
-        ).matches;
+        const reducedMotion =
+            surface.classList.contains("banner-preview-scale") ||
+            window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
         function tracePath(points, width, height) {
             context.beginPath();
@@ -235,7 +235,7 @@
             });
             if (!reducedMotion) window.requestAnimationFrame(draw);
         }
-        draw();
+        draw(reducedMotion ? 2200 : 0);
     }
 
     function decorateBanner(hero, bannerId = "default") {

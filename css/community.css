@@ -1120,6 +1120,41 @@
     transform-origin: top left;
 }
 
+.banner-preview-scale,
+.banner-preview-scale::after,
+.banner-preview-scale [data-banner-decoration] {
+    animation: none !important;
+}
+
+.banner-preview-scale .owner-shooting-star {
+    left: 18%;
+    opacity: 0.72;
+    transform: none;
+}
+
+.banner-preview-scale .owner-shooting-star-2,
+.banner-preview-scale .owner-shooting-star-6,
+.banner-preview-scale .owner-shooting-star-10 {
+    left: 45%;
+}
+
+.banner-preview-scale .owner-shooting-star-3,
+.banner-preview-scale .owner-shooting-star-7,
+.banner-preview-scale .owner-shooting-star-11 {
+    left: 70%;
+}
+
+.banner-preview-scale .owner-shooting-star-4,
+.banner-preview-scale .owner-shooting-star-8,
+.banner-preview-scale .owner-shooting-star-12 {
+    left: 88%;
+}
+
+.banner-preview-scale .dynamic-ripple {
+    opacity: 0.42;
+    transform: scale(3.2);
+}
+
 .banner-preview-scale > :not([data-banner-decoration]) {
     position: relative;
     z-index: 2;
