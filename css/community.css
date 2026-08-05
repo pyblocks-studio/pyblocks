@@ -1200,6 +1200,9 @@
 }
 
 .banner-glitch {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
     border-color: #ed4cff;
     background:
         linear-gradient(
@@ -1213,6 +1216,89 @@
         7px 7px 0 #47205c,
         inset 9px 0 #33e6ff55,
         inset -9px 0 #ff3c8c55;
+}
+
+.banner-glitch::before,
+.banner-glitch::after {
+    content: "";
+    position: absolute;
+    inset: -35%;
+    z-index: 0;
+    pointer-events: none;
+}
+
+.banner-glitch::before {
+    background: repeating-linear-gradient(
+        0deg,
+        transparent 0 17px,
+        #33e6ff4d 18px 21px,
+        transparent 22px 35px
+    );
+    animation: glitch-bars-drift 5.5s linear infinite;
+}
+
+.banner-glitch::after {
+    background: repeating-linear-gradient(
+        90deg,
+        transparent 0 62px,
+        #ff3cca66 64px 82px,
+        transparent 84px 145px
+    );
+    mix-blend-mode: screen;
+    opacity: 0.32;
+    animation: glitch-bars-burst 7s steps(1, end) infinite;
+}
+
+@keyframes glitch-bars-drift {
+    from {
+        transform: translateY(-10%);
+    }
+    to {
+        transform: translateY(10%);
+    }
+}
+
+@keyframes glitch-bars-burst {
+    0%,
+    43%,
+    47%,
+    72%,
+    76%,
+    100% {
+        clip-path: inset(0);
+        transform: translate(0);
+        opacity: 0.32;
+    }
+    44% {
+        clip-path: inset(12% 0 57%);
+        transform: translate(34px, -10px);
+        opacity: 0.95;
+    }
+    45% {
+        clip-path: inset(63% 0 12%);
+        transform: translate(-25px, 14px);
+        opacity: 0.8;
+    }
+    46% {
+        clip-path: inset(30% 0 38%);
+        transform: translate(8px, -3px);
+        opacity: 1;
+    }
+    73% {
+        clip-path: inset(8% 0 74%);
+        transform: translate(-18px, 8px);
+        opacity: 0.85;
+    }
+    74% {
+        clip-path: inset(69% 0 9%);
+        transform: translate(25px, -6px);
+        opacity: 1;
+    }
+    75% {
+        clip-path: inset(42% 0 37%);
+        transform: translate(-7px, 2px);
+        opacity: 0.75;
+    }
 }
 
 .banner-orbit {
@@ -1395,6 +1481,27 @@
     border-color: var(--green);
     box-shadow: 4px 4px 0 #315d35;
 }
+.banner-card[hidden] {
+    display: none;
+}
+.banner-lock-toggle {
+    border-style: dashed;
+    border-color: var(--muted);
+    background: linear-gradient(135deg, var(--surface), var(--surface-2));
+}
+.banner-lock-toggle:hover {
+    border-color: var(--blue);
+    background: var(--surface-2);
+}
+.banner-lock-icon {
+    display: grid;
+    place-items: center;
+    height: 68px;
+    border: 1px dashed var(--muted);
+    color: var(--muted);
+    font-size: 34px;
+    font-weight: 900;
+}
 .banner-card-preview {
     --banner-preview-scale: 0.27;
     position: relative;
@@ -1491,9 +1598,17 @@
 }
 
 .banner-preview-scale,
+.banner-preview-scale::before,
 .banner-preview-scale::after,
 .banner-preview-scale [data-banner-decoration] {
     animation: none !important;
+}
+
+.banner-preview-scale.banner-glitch::before,
+.banner-preview-scale.banner-glitch::after {
+    clip-path: none;
+    transform: none;
+    opacity: 0.45;
 }
 
 .banner-preview-scale .owner-shooting-star {
@@ -1878,6 +1993,8 @@
 
 @media (prefers-reduced-motion: reduce) {
     .banner-pride,
+    .banner-glitch::before,
+    .banner-glitch::after,
     .circuit-pattern,
     .dynamic-ripple {
         animation: none;

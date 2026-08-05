@@ -505,9 +505,8 @@
                 window.PyBlocksCloud.getUserBanners(profile.user_id),
             ]);
             const ownedIds = new Set(owned.map((item) => item.banner_id));
-            banners.forEach((banner) => {
+            const createBannerCard = (banner, unlocked) => {
                 const card = document.createElement("button");
-                const unlocked = banner.is_public || ownedIds.has(banner.id);
                 card.type = "button";
                 card.disabled = !unlocked;
                 card.className = `banner-card banner-card-${banner.id}`;
@@ -535,8 +534,46 @@
                         );
                     card.classList.add("is-equipped");
                 });
-                bannerLibrary.append(card);
+                return card;
+            };
+            const unlockedBanners = banners.filter(
+                (banner) => banner.is_public || ownedIds.has(banner.id),
+            );
+            const lockedBanners = banners.filter(
+                (banner) => !banner.is_public && !ownedIds.has(banner.id),
+            );
+
+            unlockedBanners.forEach((banner) => {
+                bannerLibrary.append(createBannerCard(banner, true));
             });
+
+            if (lockedBanners.length) {
+                const toggle = document.createElement("button");
+                toggle.type = "button";
+                toggle.className = "banner-card banner-lock-toggle";
+                toggle.setAttribute("aria-expanded", "false");
+                toggle.innerHTML =
+                    '<span class="banner-lock-icon" aria-hidden="true">?</span><strong>SHOW LOCKED BANNERS</strong><small>See banners you can still earn or receive.</small>';
+
+                const lockedCards = lockedBanners.map((banner) => {
+                    const card = createBannerCard(banner, false);
+                    card.hidden = true;
+                    return card;
+                });
+                toggle.addEventListener("click", () => {
+                    const shouldShow =
+                        toggle.getAttribute("aria-expanded") !== "true";
+                    toggle.setAttribute("aria-expanded", String(shouldShow));
+                    toggle.querySelector("strong").textContent = shouldShow
+                        ? "HIDE LOCKED BANNERS"
+                        : "SHOW LOCKED BANNERS";
+                    lockedCards.forEach((card) => {
+                        card.hidden = !shouldShow;
+                    });
+                });
+
+                bannerLibrary.append(toggle, ...lockedCards);
+            }
         }
         document.getElementById("stat-active").textContent = formatDuration(
             profile.active_seconds,
