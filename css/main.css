@@ -616,6 +616,27 @@ html[data-font-size="large"] .navbar {
     color: var(--text-bright);
 }
 
+.cloud-auth-form [hidden],
+.account-form [hidden] {
+    display: none !important;
+}
+
+.account-text-action {
+    justify-self: start;
+    border: 0;
+    padding: 0;
+    background: transparent;
+    color: var(--accent-blue);
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+.account-text-action:hover {
+    color: var(--text-bright);
+}
+
 .cloud-privacy-note,
 .cloud-empty {
     margin: 0;

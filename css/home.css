@@ -176,6 +176,10 @@ button.nav-link:hover {
     display: grid;
     gap: 15px;
 }
+
+.account-form [hidden] {
+    display: none !important;
+}
 .account-form label {
     display: grid;
     gap: 7px;
