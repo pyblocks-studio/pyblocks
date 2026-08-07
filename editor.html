@@ -14,7 +14,7 @@
             type="image/svg+xml"
             href="assets/images/brand-icons/favicon.svg"
         />
-        <link rel="stylesheet" href="css/main.css" />
+        <link rel="stylesheet" href="css/main.css?v=20260806-auth" />
         <link rel="stylesheet" href="css/community.css" />
         <link rel="stylesheet" href="css/settings.css" />
     </head>
@@ -274,6 +274,14 @@
                                 <option value="signup">Create account</option>
                             </select>
                         </label>
+                        <label id="identifier-field">
+                            Username or email
+                            <input
+                                name="identifier"
+                                autocomplete="username"
+                                required
+                            />
+                        </label>
                         <label id="username-field" hidden>
                             Username
                             <input
@@ -283,15 +291,21 @@
                                 autocomplete="username"
                             />
                         </label>
-                        <label>
+                        <label id="email-field" hidden>
                             Email
                             <input
                                 name="email"
                                 type="email"
                                 autocomplete="email"
-                                required
                             />
                         </label>
+                        <button
+                            id="forgot-password-btn"
+                            class="account-text-action"
+                            type="button"
+                        >
+                            Forgot Password?
+                        </button>
                         <label>
                             Password
                             <input
@@ -419,11 +433,11 @@
         <script src="js/console-view.js"></script>
         <script src="js/cloud-config.js"></script>
         <script src="vendor/supabase.js"></script>
-        <script src="js/cloud-service.js"></script>
+        <script src="js/cloud-service.js?v=20260806-auth"></script>
         <script src="js/live-sync.js"></script>
         <script src="js/community-platform.js"></script>
         <script src="js/python-engine.js"></script>
-        <script src="js/cloud-controller.js"></script>
+        <script src="js/cloud-controller.js?v=20260806-auth"></script>
         <script src="js/main.js"></script>
         <script src="js/theme-settings.js"></script>
     </body>
