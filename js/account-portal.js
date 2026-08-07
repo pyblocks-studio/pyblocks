@@ -13,9 +13,11 @@ window.PyBlocksAccountPortal = (() => {
             </div>
             <form id="account-form" class="account-form">
               <label>Action<select name="mode"><option value="signin">Sign in</option><option value="signup">Create account</option></select></label>
+              <label data-identifier>Username or email<input name="identifier" autocomplete="username" required /></label>
               <label data-username hidden>Username<input name="username" minlength="3" maxlength="32" pattern="[A-Za-z0-9_]+" autocomplete="username" /></label>
-              <label>Email<input name="email" type="email" autocomplete="email" required /></label>
+              <label data-email hidden>Email<input name="email" type="email" autocomplete="email" /></label>
               <label>Password<input name="password" type="password" minlength="8" autocomplete="current-password" required /></label>
+              <button class="account-text-action" data-forgot-password type="button">Forgot Password?</button>
               <button class="primary-cta account-submit" type="submit">Continue</button>
               <p id="account-form-status" role="status" aria-live="polite">Passwords are secured by Supabase Auth.</p>
             </form>
@@ -26,6 +28,23 @@ window.PyBlocksAccountPortal = (() => {
           <a href="achievements.html">Achievements</a>
           <a href="editor.html">New project</a>
         </div>`;
+    }
+
+    async function recover(form) {
+        const status = document.getElementById("account-form-status");
+        const identifier = form.elements.identifier.value.trim();
+        if (!identifier) {
+            status.textContent = "Enter your username or email first.";
+            form.elements.identifier.focus();
+            return;
+        }
+        status.textContent = "Sending a secure reset link…";
+        try {
+            status.textContent =
+                await window.PyBlocksCloud.requestPasswordReset(identifier);
+        } catch (error) {
+            status.textContent = error.message;
+        }
     }
 
     function updateButton() {
@@ -90,10 +109,25 @@ window.PyBlocksAccountPortal = (() => {
         form.addEventListener("submit", submit);
         form.elements.mode.addEventListener("change", () => {
             const field = form.querySelector("[data-username]");
+            const emailField = form.querySelector("[data-email]");
+            const identifierField = form.querySelector("[data-identifier]");
+            const forgot = form.querySelector("[data-forgot-password]");
             const signingUp = form.elements.mode.value === "signup";
             field.hidden = !signingUp;
             field.querySelector("input").required = signingUp;
+            emailField.hidden = !signingUp;
+            emailField.querySelector("input").required = signingUp;
+            identifierField.hidden = signingUp;
+            identifierField.querySelector("input").required = !signingUp;
+            forgot.hidden = signingUp;
+            form.elements.password.autocomplete = signingUp
+                ? "new-password"
+                : "current-password";
         });
+        form.querySelector("[data-forgot-password]").addEventListener(
+            "click",
+            () => void recover(form),
+        );
         dialog.addEventListener("click", (event) => {
             if (event.target === dialog) close();
         });

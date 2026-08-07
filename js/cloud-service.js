@@ -143,13 +143,30 @@ window.PyBlocksCloud = (() => {
         };
     }
 
-    async function signIn({ email, password }) {
-        const body = await request("/auth/v1/token?grant_type=password", {
+    async function accountAccess(payload) {
+        return request("/functions/v1/account-access", {
             method: "POST",
-            body: JSON.stringify({ email, password }),
+            body: JSON.stringify(payload),
+        });
+    }
+
+    async function signIn({ identifier, password }) {
+        const body = await accountAccess({
+            action: "signin",
+            identifier,
+            password,
         });
         saveSession(body);
         return currentUser();
+    }
+
+    async function requestPasswordReset(identifier) {
+        await accountAccess({
+            action: "recover",
+            identifier,
+            origin: window.location.origin,
+        });
+        return "If an account matches that username or email, a reset link is on its way. If you did not request it, you can safely ignore the email.";
     }
 
     async function ensureProfile() {
@@ -722,6 +739,7 @@ window.PyBlocksCloud = (() => {
         getAccessToken,
         signUp,
         signIn,
+        requestPasswordReset,
         signOut,
         ensureProfile,
         getMyProfile,

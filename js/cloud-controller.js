@@ -167,6 +167,7 @@ window.PyBlocksCloudController = (() => {
         const form = event.currentTarget;
         const values = {
             username: form.elements.username.value.trim(),
+            identifier: form.elements.identifier.value.trim(),
             email: form.elements.email.value.trim(),
             password: form.elements.password.value,
         };
@@ -243,9 +244,41 @@ window.PyBlocksCloudController = (() => {
             .getElementById("auth-mode")
             .addEventListener("change", (event) => {
                 const usernameField = document.getElementById("username-field");
+                const emailField = document.getElementById("email-field");
+                const identifierField =
+                    document.getElementById("identifier-field");
+                const forgotButton = document.getElementById(
+                    "forgot-password-btn",
+                );
                 const signingUp = event.target.value === "signup";
                 usernameField.hidden = !signingUp;
                 usernameField.querySelector("input").required = signingUp;
+                emailField.hidden = !signingUp;
+                emailField.querySelector("input").required = signingUp;
+                identifierField.hidden = signingUp;
+                identifierField.querySelector("input").required = !signingUp;
+                forgotButton.hidden = signingUp;
+            });
+        document
+            .getElementById("forgot-password-btn")
+            .addEventListener("click", async () => {
+                const form = document.getElementById("cloud-auth-form");
+                const identifier = form.elements.identifier.value.trim();
+                if (!identifier) {
+                    setStatus("Enter your username or email first.", true);
+                    form.elements.identifier.focus();
+                    return;
+                }
+                setStatus("Sending a secure reset link…");
+                try {
+                    setStatus(
+                        await window.PyBlocksCloud.requestPasswordReset(
+                            identifier,
+                        ),
+                    );
+                } catch (error) {
+                    setStatus(error.message, true);
+                }
             });
         document
             .getElementById("project-name-input")
