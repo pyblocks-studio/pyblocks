@@ -57,7 +57,8 @@ async function emailForIdentifier(identifier: string) {
     );
     if (!userResponse.ok) return null;
     const user = await userResponse.json();
-    return typeof user.email === "string" ? user.email : null;
+    const authUser = user?.user || user;
+    return typeof authUser?.email === "string" ? authUser.email : null;
 }
 
 Deno.serve(async (request: Request) => {
