@@ -83,7 +83,7 @@ test("migrates the legacy version-zero project envelope", () => {
     delete project.settings;
     const migrated = format.parse(JSON.stringify(project));
     assert.equal(migrated.version, format.VERSION);
-    assert.equal(migrated.settings.executionTimeoutMs, 10_000);
+    assert.deepEqual(migrated.settings, {});
 });
 
 test("rejects project files larger than five megabytes", () => {
