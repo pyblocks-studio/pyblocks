@@ -98,12 +98,14 @@ test("every custom block generator has deterministic disconnected output", () =>
         py_number: "0",
         py_arithmetic: "0 + 0",
         py_builtin_math: "abs(0)",
+        py_num: "int(0)",
         py_round: "round(0)",
         py_minmax: "min([])",
         py_math_function: "math.sqrt(0)",
         py_random_int: "random.randint(1, 10)",
         py_random_choice: "random.choice([])",
         py_string: '"text"',
+        py_str: "str('')",
         py_fstring: 'f"value = {variable}"',
         py_string_concat: "'' + ''",
         py_len: "len('')",
@@ -140,6 +142,17 @@ test("every custom block generator has deterministic disconnected output", () =>
         }
     }
     assert.deepEqual(actual, expected);
+});
+
+test("number and string conversion blocks emit valid Python", () => {
+    const ws = workspace();
+    const asFloat = block(ws, "py_num", { TYPE: "float" });
+    connect(asFloat, "VALUE", block(ws, "py_string", { TEXT: "3.5" }));
+    assert.equal(expression(ws, asFloat), 'float("3.5")');
+
+    const asString = block(ws, "py_str");
+    connect(asString, "VALUE", block(ws, "py_number", { NUM: 42 }));
+    assert.equal(expression(ws, asString), "str(42)");
 });
 
 test("structured function parameters are sanitized and deduplicated", () => {
