@@ -353,6 +353,25 @@ const PY_BLOCKS = [
         style: "math_blocks",
     },
     {
+        type: "py_num",
+        message0: "%1 ( %2 )",
+        args0: [
+            {
+                type: "field_dropdown",
+                name: "TYPE",
+                options: [
+                    ["int", "int"],
+                    ["float", "float"],
+                ],
+            },
+            { type: "input_value", name: "VALUE" },
+        ],
+        output: "Number",
+        style: "math_blocks",
+        tooltip:
+            "Convert a value to a Python integer or floating-point number.",
+    },
+    {
         type: "py_round",
         message0: "round ( %1 , ndigits %2 )",
         args0: [
@@ -408,6 +427,14 @@ const PY_BLOCKS = [
         args0: [{ type: "field_input", name: "TEXT", text: "text" }],
         output: "String",
         style: "text_blocks",
+    },
+    {
+        type: "py_str",
+        message0: "str ( %1 )",
+        args0: [{ type: "input_value", name: "VALUE" }],
+        output: "String",
+        style: "text_blocks",
+        tooltip: "Convert a value to a Python string.",
     },
     {
         type: "py_fstring",
@@ -1167,6 +1194,11 @@ py.forBlock.py_builtin_math = (b, g) =>
         `${b.getFieldValue("FN")}(${value(g, b, "VALUE", "0")})`,
         O.FUNCTION_CALL,
     );
+py.forBlock.py_num = (b, g) =>
+    expr(
+        `${b.getFieldValue("TYPE")}(${value(g, b, "VALUE", "0")})`,
+        O.FUNCTION_CALL,
+    );
 py.forBlock.py_round = (b, g) =>
     expr(
         `round(${value(g, b, "VALUE", "0")}${b.getInputTargetBlock("NDIGITS") ? `, ${value(g, b, "NDIGITS", "0")}` : ""})`,
@@ -1198,6 +1230,8 @@ py.forBlock.py_random_int = (b, g) =>
 py.forBlock.py_random_choice = (b, g) =>
     expr(`random.choice(${value(g, b, "VALUE", "[]")})`, O.FUNCTION_CALL);
 py.forBlock.py_string = (b) => expr(quoted(b.getFieldValue("TEXT")), O.ATOMIC);
+py.forBlock.py_str = (b, g) =>
+    expr(`str(${value(g, b, "VALUE", "''")})`, O.FUNCTION_CALL);
 py.forBlock.py_fstring = (b) =>
     expr(`f${quoted(b.getFieldValue("TEXT"))}`, O.ATOMIC);
 py.forBlock.py_string_concat = (b, g) =>
