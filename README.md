@@ -16,7 +16,7 @@ The tested browser feature set includes:
 - console `print()` and asynchronous `input()`;
 - the Skulpt-provided `math`, `random`, and `time` modules.
 
-Skulpt is a Python implementation for browsers, not CPython. Native extensions, sockets, subprocesses, unrestricted network access, and the desktop filesystem are unavailable. Library choices marked **Export only** generate valid desktop-Python imports but are not claimed to execute in the browser. A run is stopped after 10 seconds by default; the Stop button can interrupt it sooner.
+Skulpt is a Python implementation for browsers, not CPython. Native extensions, sockets, subprocesses, unrestricted network access, and the desktop filesystem are unavailable. Library choices marked **Export only** generate valid desktop-Python imports but are not claimed to execute in the browser. Programs can keep running indefinitely for interactive projects; use the Stop button when you want to terminate one.
 
 ## Projects and export
 
