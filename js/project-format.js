@@ -69,15 +69,7 @@
                     ? project.name.slice(0, 120)
                     : "Untitled",
             libraries: normalizeLibraries(project.libraries || []),
-            settings: {
-                executionTimeoutMs: Math.min(
-                    60_000,
-                    Math.max(
-                        1_000,
-                        Number(project.settings?.executionTimeoutMs) || 10_000,
-                    ),
-                ),
-            },
+            settings: {},
             attribution: normalizeAttribution(project.attribution),
             workspace: project.workspace,
         };
@@ -94,7 +86,7 @@
                         ? project.name
                         : "Migrated project",
                 libraries: project.libraries || [],
-                settings: project.settings || { executionTimeoutMs: 10_000 },
+                settings: project.settings || {},
             };
         }
         return project;

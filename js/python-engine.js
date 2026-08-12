@@ -11,7 +11,7 @@ window.PythonEngine = {
     autosaveTimer: null,
     storageKey: "pyblocks-autosave-v1",
     projectName: "Untitled",
-    projectSettings: { executionTimeoutMs: 10_000 },
+    projectSettings: {},
     remixAttribution: null,
 
     init(workspace) {
@@ -203,13 +203,6 @@ window.PythonEngine = {
             this.finishRun(worker);
         });
         worker.postMessage({ type: "run", code });
-        this.runTimer = setTimeout(() => {
-            if (worker !== this.worker) return;
-            this.stopCode();
-            this.showError(
-                `Execution exceeded ${this.projectSettings.executionTimeoutMs / 1000} seconds and was stopped.`,
-            );
-        }, this.projectSettings.executionTimeoutMs);
     },
 
     sourceLine(code, line) {
@@ -259,7 +252,6 @@ window.PythonEngine = {
         this.runToken += 1;
         this.worker.terminate();
         this.worker = null;
-        clearTimeout(this.runTimer);
         this.inputRequest = null;
         this.dom.inputForm.hidden = true;
         this.setRunning(false);
@@ -270,7 +262,6 @@ window.PythonEngine = {
         if (worker !== this.worker) return;
         worker.terminate();
         this.worker = null;
-        clearTimeout(this.runTimer);
         this.inputRequest = null;
         this.dom.inputForm.hidden = true;
         this.setRunning(false);
@@ -367,7 +358,7 @@ window.PythonEngine = {
             this.suppressChanges = false;
         }
         this.projectName = "Untitled";
-        this.projectSettings = { executionTimeoutMs: 10_000 };
+        this.projectSettings = {};
         this.remixAttribution = null;
         this.setLibraries([], { markDirty: false });
         this.dirty = false;
