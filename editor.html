@@ -48,6 +48,9 @@
                 </button>
             </div>
             <div class="actions">
+                <button id="help-btn" class="btn btn-secondary" type="button">
+                    Help
+                </button>
                 <button
                     id="libraries-btn"
                     class="btn btn-secondary"
@@ -194,6 +197,138 @@
                 </div>
             </section>
         </main>
+
+        <section
+            id="pygame-window"
+            class="pygame-window"
+            hidden
+            aria-label="Pygame preview"
+        >
+            <header id="pygame-titlebar" class="pygame-titlebar">
+                <strong>Pygame preview</strong>
+                <span>Desktop export display</span>
+                <button
+                    id="pygame-fullscreen-btn"
+                    type="button"
+                    aria-label="Fullscreen Pygame preview"
+                >
+                    □
+                </button>
+                <button
+                    id="pygame-close-btn"
+                    type="button"
+                    aria-label="Close Pygame preview"
+                >
+                    ×
+                </button>
+            </header>
+            <div class="pygame-stage">
+                <span>PYGAME</span>
+                <p>
+                    Run the exported <code>.py</code> file with desktop Python
+                    and Pygame to display your game here.
+                </p>
+            </div>
+        </section>
+
+        <div id="help-dialog" class="dialog-backdrop" hidden aria-hidden="true">
+            <section
+                class="libraries-dialog help-dialog"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="help-title"
+            >
+                <div class="dialog-header">
+                    <div>
+                        <h2 id="help-title">PyBlocks Python Guide</h2>
+                        <p>
+                            Connect blocks beneath the Events block. Floating
+                            blocks do not run.
+                        </p>
+                    </div>
+                    <button
+                        id="help-close-btn"
+                        class="dialog-close-btn"
+                        type="button"
+                        aria-label="Close help"
+                    >
+                        ×
+                    </button>
+                </div>
+                <div class="help-content">
+                    <article>
+                        <div class="guide-block output-guide">
+                            print ( “Hello!” )
+                        </div>
+                        <div>
+                            <h3>Output: <code>print()</code></h3>
+                            <p>Shows text or values in the console.</p>
+                        </div>
+                    </article>
+                    <article>
+                        <div class="guide-block variable-guide">score = 0</div>
+                        <div>
+                            <h3>Variables: <code>score = 0</code></h3>
+                            <p>
+                                Store a value under a name so your program can
+                                use it later.
+                            </p>
+                        </div>
+                    </article>
+                    <article>
+                        <div class="guide-block input-guide">
+                            input ( “Name?” )
+                        </div>
+                        <div>
+                            <h3>Input: <code>input()</code></h3>
+                            <p>
+                                Pauses and asks the person running the program
+                                to type an answer.
+                            </p>
+                        </div>
+                    </article>
+                    <article>
+                        <div class="guide-block logic-guide">if condition</div>
+                        <div>
+                            <h3>Logic: <code>if</code></h3>
+                            <p>
+                                Runs connected blocks only when a condition is
+                                true.
+                            </p>
+                        </div>
+                    </article>
+                    <button
+                        id="restart-tutorial-btn"
+                        class="btn btn-primary"
+                        type="button"
+                    >
+                        Start interactive tutorial
+                    </button>
+                </div>
+            </section>
+        </div>
+
+        <div id="tutorial-layer" class="tutorial-layer" hidden>
+            <div id="tutorial-focus" class="tutorial-focus"></div>
+            <aside
+                id="tutorial-card"
+                class="tutorial-card"
+                role="dialog"
+                aria-live="polite"
+            >
+                <p id="tutorial-step"></p>
+                <div>
+                    <button id="tutorial-skip" type="button">Skip</button
+                    ><button
+                        id="tutorial-next"
+                        class="btn btn-primary"
+                        type="button"
+                    >
+                        Next
+                    </button>
+                </div>
+            </aside>
+        </div>
 
         <div
             id="libraries-dialog"
@@ -440,6 +575,7 @@
         <script src="js/community-platform.js"></script>
         <script src="js/python-engine.js"></script>
         <script src="js/cloud-controller.js?v=20260806-auth"></script>
+        <script src="js/editor-assistance.js"></script>
         <script src="js/main.js"></script>
         <script src="js/theme-settings.js"></script>
     </body>

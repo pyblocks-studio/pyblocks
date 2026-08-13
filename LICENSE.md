@@ -26,3 +26,6 @@ Blockly, Google, and Skulpt are not affiliated with, responsible for, or endorsi
 
 5. Disclaimer
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+6. Exported Code and System Access
+Exported Python runs outside the protections of the PyBlocks browser editor. A project may import libraries such as `os`, `pathlib`, or `sys`, or contain other code capable of reading, changing, or deleting files and accessing system information. Users must review exported code and use appropriate caution before running it, especially when it originated with another person. To the fullest extent permitted by law, the PyBlocks Studio author is not responsible for system changes, data loss, security incidents, or other harm caused by running generated, exported, downloaded, viewed, or remixed projects.
