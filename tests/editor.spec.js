@@ -34,6 +34,42 @@ test("editor starts without page errors and essential actions remain visible", a
     expect(errors).toEqual([]);
 });
 
+test("help, tutorial, pygame preview, and risky export warning work", async ({
+    page,
+}) => {
+    await page.addInitScript(() =>
+        localStorage.setItem("pyblocks-editor-tutorial-v1", "complete"),
+    );
+    await page.goto("/editor.html");
+    await page.getByRole("button", { name: "Help" }).click();
+    await expect(
+        page.getByRole("heading", { name: "PyBlocks Python Guide" }),
+    ).toBeVisible();
+    await page.getByRole("button", { name: "Close help" }).click();
+
+    await page.getByRole("button", { name: "Libraries" }).click();
+    await page.locator('.library-option input[value="pygame"]').check();
+    await expect(
+        page.getByRole("region", { name: "Pygame preview" }),
+    ).toBeVisible();
+    await page.locator('.library-option input[value="os"]').check();
+    await page.getByRole("button", { name: "Done" }).click();
+    await page
+        .getByRole("button", { name: "Fullscreen Pygame preview" })
+        .click();
+    await expect(
+        page.getByRole("button", { name: "Restore Pygame preview" }),
+    ).toBeVisible();
+    await page.getByRole("button", { name: "Restore Pygame preview" }).click();
+
+    await page.getByRole("button", { name: "Open project menu" }).click();
+    page.once("dialog", async (dialog) => {
+        expect(dialog.message()).toContain("can access files or information");
+        await dialog.dismiss();
+    });
+    await page.getByRole("menuitem", { name: /Export Python/ }).click();
+});
+
 test("Python import is absent and cloud projects compress losslessly", async ({
     page,
 }, testInfo) => {
