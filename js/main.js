@@ -140,6 +140,7 @@ document.addEventListener("DOMContentLoaded", () => {
         registerFunctionCategory(workspace);
         initLibrariesDialog(workspace);
         window.PyBlocksCloudController.init(workspace);
+        window.PyBlocksEditorAssistance?.init(workspace, { isViewMode });
         window.PythonEngine.restoreAutosave();
 
         const updateCode = (event) => {
@@ -416,6 +417,10 @@ function initLibrariesDialog(workspace) {
         ["csv", "Export only: read and write CSV tabular data."],
         ["decimal", "Export only: precise decimal arithmetic."],
         ["fractions", "Export only: rational-number arithmetic."],
+        [
+            "pygame",
+            "Export only: desktop games and graphics. Opens a movable browser preview window.",
+        ],
     ];
 
     modules.forEach(([moduleName, description]) => {
@@ -437,6 +442,9 @@ function initLibrariesDialog(workspace) {
             (input) => input.value,
         );
         window.PythonEngine.setLibraries(selected);
+        window.PyBlocksEditorAssistance?.setPygameEnabled(
+            selected.includes("pygame"),
+        );
         updateLibraryToolbox(workspace, selected, modules);
         count.textContent = selected.length
             ? `${selected.length} ${selected.length === 1 ? "library" : "libraries"} selected`
@@ -457,6 +465,9 @@ function initLibrariesDialog(workspace) {
             input.checked = selected.has(input.value);
         });
         updateLibraryToolbox(workspace, [...selected], modules);
+        window.PyBlocksEditorAssistance?.setPygameEnabled(
+            selected.has("pygame"),
+        );
         count.textContent = selected.size
             ? `${selected.size} ${selected.size === 1 ? "library" : "libraries"} selected`
             : "No libraries selected";

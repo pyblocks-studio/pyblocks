@@ -395,6 +395,17 @@ window.PythonEngine = {
     },
 
     exportCode() {
+        const systemAccessLibraries = ["os", "pathlib", "sys"];
+        const risky = systemAccessLibraries.filter((library) =>
+            this.selectedLibraries.has(library),
+        );
+        if (
+            risky.length &&
+            !window.confirm(
+                `Safety warning: this project uses ${risky.join(", ")}, which can access files or information on a computer when the exported Python is run. Only download and run code you understand. PyBlocks cannot guarantee what exported code will do and is not responsible for damage or data loss.\n\nDownload anyway?`,
+            )
+        )
+            return;
         const requested = window.prompt(
             "Python filename:",
             "pyblocks-script.py",
