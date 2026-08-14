@@ -413,15 +413,34 @@ window.PyBlocksCloud = (() => {
         const text = JSON.stringify(project);
         const packed = await compress(text);
         const published = Boolean(options.isPublished);
+        let firstPublishedAt = null;
+        const owner = currentUser();
+        if (options.id) {
+            const existing = await request(
+                `/rest/v1/pyblocks_projects?id=eq.${encodeURIComponent(options.id)}&user_id=eq.${encodeURIComponent(owner.id)}&select=published_at&limit=1`,
+                { method: "GET" },
+                true,
+            );
+            firstPublishedAt = existing?.[0]?.published_at || null;
+        } else {
+            const existing = await request(
+                `/rest/v1/pyblocks_projects?user_id=eq.${encodeURIComponent(owner.id)}&name=eq.${encodeURIComponent(project.name)}&select=published_at&limit=1`,
+                { method: "GET" },
+                true,
+            );
+            firstPublishedAt = existing?.[0]?.published_at || null;
+        }
+        if (published && !firstPublishedAt)
+            firstPublishedAt = new Date().toISOString();
         const record = {
-            user_id: currentUser().id,
+            user_id: owner.id,
             name: project.name,
             description: String(options.description || "").slice(0, 500),
             payload: packed.payload,
             encoding: packed.encoding,
             uncompressed_bytes: packed.uncompressedBytes,
             is_published: published,
-            published_at: published ? new Date().toISOString() : null,
+            published_at: firstPublishedAt,
             updated_at: new Date().toISOString(),
             remixed_from_project_id:
                 options.remixAttribution?.projectId || null,
@@ -469,14 +488,31 @@ window.PyBlocksCloud = (() => {
     async function deleteProject(id) {
         const user = currentUser();
         if (!user) throw new Error("Sign in to delete a cloud project.");
+        const projectPath = `/rest/v1/pyblocks_projects?id=eq.${encodeURIComponent(id)}&user_id=eq.${encodeURIComponent(user.id)}`;
+        const projects = await request(
+            `${projectPath}&select=id,is_published`,
+            { method: "GET" },
+            true,
+        );
+        if (!projects?.length) throw new Error("Cloud project was not found.");
+        if (projects[0].is_published)
+            throw new Error("Unpublish this project before deleting it.");
         await request(
-            `/rest/v1/pyblocks_projects?id=eq.${encodeURIComponent(id)}&user_id=eq.${encodeURIComponent(user.id)}`,
+            `${projectPath}&is_published=eq.false`,
             { method: "DELETE" },
             true,
         );
     }
 
     async function updateProjectMetadata(id, changes) {
+        const existing = await request(
+            `/rest/v1/pyblocks_projects?id=eq.${encodeURIComponent(id)}&select=published_at&limit=1`,
+            { method: "GET" },
+            true,
+        );
+        let firstPublishedAt = existing?.[0]?.published_at || null;
+        if (changes.isPublished && !firstPublishedAt)
+            firstPublishedAt = new Date().toISOString();
         const rows = await request(
             `/rest/v1/pyblocks_projects?id=eq.${encodeURIComponent(id)}`,
             {
@@ -489,9 +525,7 @@ window.PyBlocksCloud = (() => {
                         500,
                     ),
                     is_published: Boolean(changes.isPublished),
-                    published_at: changes.isPublished
-                        ? new Date().toISOString()
-                        : null,
+                    published_at: firstPublishedAt,
                     updated_at: new Date().toISOString(),
                 }),
             },

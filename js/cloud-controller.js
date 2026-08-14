@@ -60,7 +60,9 @@ window.PyBlocksCloudController = (() => {
         const title = document.createElement("strong");
         title.textContent = project.name;
         const meta = document.createElement("small");
-        meta.textContent = `${project.is_published ? "Published" : "Draft"} · ${new Date(project.updated_at).toLocaleString()}`;
+        meta.textContent = project.published_at
+            ? `${project.is_published ? "Published" : "Draft"} · First published ${new Date(project.published_at).toLocaleDateString()}`
+            : "Draft · Not published yet";
         details.append(title, meta);
         const actions = document.createElement("div");
         const openButton = document.createElement("button");
@@ -114,8 +116,21 @@ window.PyBlocksCloudController = (() => {
     function requestProjectDelete(project) {
         pendingDeleteProject = project;
         const confirmation = document.getElementById("delete-project-dialog");
-        document.getElementById("delete-project-message").textContent =
-            `Delete “${project.name}” from your account? This permanently removes the cloud project and cannot be undone.`;
+        const title = document.getElementById("delete-project-title");
+        const message = document.getElementById("delete-project-message");
+        const cancel = document.getElementById("cancel-project-delete-btn");
+        const confirm = document.getElementById("confirm-project-delete-btn");
+        if (project.is_published) {
+            title.textContent = "Unpublish this project first";
+            message.textContent = `“${project.name}” is currently published. Unpublish and save it before deleting the project.`;
+            cancel.textContent = "Okay";
+            confirm.hidden = true;
+        } else {
+            title.textContent = "Delete cloud project?";
+            message.textContent = `Delete “${project.name}” from your account? This permanently removes the cloud project and cannot be undone.`;
+            cancel.textContent = "Don’t delete";
+            confirm.hidden = false;
+        }
         window.PyBlocksDialogs.open(confirmation, {
             opener: document.activeElement,
             initialFocus: document.getElementById("cancel-project-delete-btn"),
@@ -125,6 +140,9 @@ window.PyBlocksCloudController = (() => {
 
     function cancelProjectDelete() {
         pendingDeleteProject = null;
+        document.getElementById("cancel-project-delete-btn").textContent =
+            "Don’t delete";
+        document.getElementById("confirm-project-delete-btn").hidden = false;
         window.PyBlocksDialogs.close(
             document.getElementById("delete-project-dialog"),
         );
@@ -133,6 +151,7 @@ window.PyBlocksCloudController = (() => {
     async function confirmProjectDelete() {
         const project = pendingDeleteProject;
         if (!project) return;
+        if (project.is_published) return;
         const button = document.getElementById("confirm-project-delete-btn");
         button.disabled = true;
         button.textContent = "Deleting…";
