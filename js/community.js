@@ -457,9 +457,56 @@
         edit.className = "compact-action secondary";
         edit.href = `editor.html?cloud=${encodeURIComponent(project.id)}`;
         edit.textContent = "Open editor";
-        controls.append(publishedLabel, edit, save);
+        const remove = document.createElement("button");
+        remove.type = "button";
+        remove.className = "project-delete-action";
+        remove.textContent = "Delete";
+        remove.addEventListener("click", () =>
+            requestDashboardProjectDelete(project, refresh, remove),
+        );
+        controls.append(publishedLabel, edit, save, remove);
         article.append(name, description, controls);
         return article;
+    }
+
+    function requestDashboardProjectDelete(project, refresh, opener) {
+        const modal = document.getElementById("dashboard-delete-dialog");
+        const cancel = document.getElementById("dashboard-delete-cancel");
+        const confirm = document.getElementById("dashboard-delete-confirm");
+        const message = document.getElementById("dashboard-delete-message");
+        message.textContent = `Delete “${project.name}”? This permanently removes the cloud project and cannot be undone.`;
+        modal.hidden = false;
+        document.body.classList.add("modal-open");
+        cancel.focus();
+
+        const close = () => {
+            modal.hidden = true;
+            document.body.classList.remove("modal-open");
+            cancel.onclick = null;
+            confirm.onclick = null;
+            modal.onclick = null;
+            opener.focus();
+        };
+        cancel.onclick = close;
+        modal.onclick = (event) => {
+            if (event.target === modal) close();
+        };
+        confirm.onclick = async () => {
+            confirm.disabled = true;
+            confirm.textContent = "Deleting…";
+            status(`Deleting ${project.name}…`);
+            try {
+                await window.PyBlocksCloud.deleteProject(project.id);
+                close();
+                status("Project deleted.");
+                await refresh();
+            } catch (error) {
+                status(error.message);
+            } finally {
+                confirm.disabled = false;
+                confirm.textContent = "Delete project";
+            }
+        };
     }
 
     async function initDashboard() {

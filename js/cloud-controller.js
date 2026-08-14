@@ -6,6 +6,7 @@ window.PyBlocksCloudController = (() => {
     let currentProjectId = null;
     let currentPublished = false;
     let autosaveTimer = null;
+    let pendingDeleteProject = null;
 
     function setStatus(message, error = false) {
         const status = document.getElementById("cloud-status");
@@ -69,11 +70,10 @@ window.PyBlocksCloudController = (() => {
         openButton.addEventListener("click", () => void openProject(project));
         const removeButton = document.createElement("button");
         removeButton.type = "button";
-        removeButton.className = "text-button danger-action";
+        removeButton.className = "cloud-delete-btn";
         removeButton.textContent = "Delete";
-        removeButton.addEventListener(
-            "click",
-            () => void deleteProject(project),
+        removeButton.addEventListener("click", () =>
+            requestProjectDelete(project),
         );
         actions.append(openButton, removeButton);
         row.append(details, actions);
@@ -111,14 +111,41 @@ window.PyBlocksCloudController = (() => {
         }
     }
 
-    async function deleteProject(project) {
-        if (!window.confirm(`Delete ${project.name} from the cloud?`)) return;
+    function requestProjectDelete(project) {
+        pendingDeleteProject = project;
+        const confirmation = document.getElementById("delete-project-dialog");
+        document.getElementById("delete-project-message").textContent =
+            `Delete “${project.name}” from your account? This permanently removes the cloud project and cannot be undone.`;
+        window.PyBlocksDialogs.open(confirmation, {
+            opener: document.activeElement,
+            initialFocus: document.getElementById("cancel-project-delete-btn"),
+            onEscape: cancelProjectDelete,
+        });
+    }
+
+    function cancelProjectDelete() {
+        pendingDeleteProject = null;
+        window.PyBlocksDialogs.close(
+            document.getElementById("delete-project-dialog"),
+        );
+    }
+
+    async function confirmProjectDelete() {
+        const project = pendingDeleteProject;
+        if (!project) return;
+        const button = document.getElementById("confirm-project-delete-btn");
+        button.disabled = true;
+        button.textContent = "Deleting…";
         try {
             await window.PyBlocksCloud.deleteProject(project.id);
             if (currentProjectId === project.id) currentProjectId = null;
+            cancelProjectDelete();
             await renderProjects();
         } catch (error) {
             setStatus(error.message, true);
+        } finally {
+            button.disabled = false;
+            button.textContent = "Delete project";
         }
     }
 
@@ -219,6 +246,17 @@ window.PyBlocksCloudController = (() => {
 
     function init() {
         dialog = document.getElementById("cloud-dialog");
+        document
+            .getElementById("cancel-project-delete-btn")
+            .addEventListener("click", cancelProjectDelete);
+        document
+            .getElementById("confirm-project-delete-btn")
+            .addEventListener("click", () => void confirmProjectDelete());
+        document
+            .getElementById("delete-project-dialog")
+            .addEventListener("click", (event) => {
+                if (event.target === event.currentTarget) cancelProjectDelete();
+            });
         document.getElementById("account-btn").addEventListener("click", open);
         document
             .getElementById("cloud-close-btn")

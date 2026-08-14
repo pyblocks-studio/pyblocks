@@ -467,8 +467,10 @@ window.PyBlocksCloud = (() => {
     }
 
     async function deleteProject(id) {
+        const user = currentUser();
+        if (!user) throw new Error("Sign in to delete a cloud project.");
         await request(
-            `/rest/v1/pyblocks_projects?id=eq.${encodeURIComponent(id)}`,
+            `/rest/v1/pyblocks_projects?id=eq.${encodeURIComponent(id)}&user_id=eq.${encodeURIComponent(user.id)}`,
             { method: "DELETE" },
             true,
         );
