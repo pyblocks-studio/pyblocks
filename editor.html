@@ -490,6 +490,47 @@
             </section>
         </div>
 
+        <div
+            id="delete-project-dialog"
+            class="dialog-backdrop"
+            aria-hidden="true"
+            hidden
+        >
+            <section
+                class="libraries-dialog delete-project-dialog"
+                role="alertdialog"
+                aria-modal="true"
+                aria-labelledby="delete-project-title"
+                aria-describedby="delete-project-message"
+            >
+                <div class="dialog-header">
+                    <div>
+                        <h2 id="delete-project-title">Delete cloud project?</h2>
+                        <p id="delete-project-message">
+                            This permanently removes the project and cannot be
+                            undone.
+                        </p>
+                    </div>
+                </div>
+                <div class="delete-project-actions">
+                    <button
+                        id="cancel-project-delete-btn"
+                        class="btn delete-cancel-btn"
+                        type="button"
+                    >
+                        Don’t delete
+                    </button>
+                    <button
+                        id="confirm-project-delete-btn"
+                        class="btn delete-confirm-btn"
+                        type="button"
+                    >
+                        Delete project
+                    </button>
+                </div>
+            </section>
+        </div>
+
         <xml id="toolbox" style="display: none">
             <category name="Events" colour="#e0af68"
                 ><block type="py_when_run"></block

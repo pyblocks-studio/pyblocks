@@ -172,6 +172,33 @@
                 <div id="community-results" class="project-grid"></div>
             </section>
         </main>
+        <div id="dashboard-delete-dialog" class="community-modal" hidden>
+            <section
+                role="alertdialog"
+                aria-modal="true"
+                aria-labelledby="dashboard-delete-title"
+                aria-describedby="dashboard-delete-message"
+            >
+                <h2 id="dashboard-delete-title">Delete project?</h2>
+                <p id="dashboard-delete-message"></p>
+                <div class="community-modal-actions">
+                    <button
+                        id="dashboard-delete-cancel"
+                        class="delete-cancel"
+                        type="button"
+                    >
+                        Don’t delete
+                    </button>
+                    <button
+                        id="dashboard-delete-confirm"
+                        class="delete-confirm"
+                        type="button"
+                    >
+                        Delete project
+                    </button>
+                </div>
+            </section>
+        </div>
         <script src="js/cloud-config.js"></script>
         <script src="js/project-format.js"></script>
         <script src="vendor/supabase.js"></script>
