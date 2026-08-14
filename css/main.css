@@ -676,6 +676,61 @@ html[data-font-size="large"] .navbar {
     display: block;
 }
 
+.cloud-delete-btn {
+    min-height: 38px;
+    border: 1px solid transparent;
+    border-radius: 2px;
+    padding: 7px 12px;
+    background: transparent;
+    color: #f7768e;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.cloud-delete-btn:hover,
+.cloud-delete-btn:focus-visible {
+    border-color: #f7768e;
+    background: #f7768e;
+    color: #141620;
+}
+
+.delete-project-dialog {
+    width: min(500px, 100%);
+}
+
+.delete-project-actions {
+    padding: 18px 20px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.delete-cancel-btn {
+    border-color: #9ece6a;
+    background: #9ece6a;
+    color: #10140d;
+    font-weight: 800;
+}
+
+.delete-cancel-btn:hover,
+.delete-cancel-btn:focus-visible {
+    background: #b9e98d;
+}
+
+.delete-confirm-btn {
+    border-color: #f7768e;
+    background: transparent;
+    color: #f7768e;
+    font-weight: 800;
+}
+
+.delete-confirm-btn:hover,
+.delete-confirm-btn:focus-visible {
+    background: #f7768e;
+    color: #141620;
+}
+
 .pygame-window {
     position: fixed;
     z-index: 35;
