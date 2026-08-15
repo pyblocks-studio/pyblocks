@@ -769,6 +769,231 @@ window.PyBlocksCloud = (() => {
         }));
     }
 
+    async function listFriends() {
+        const user = currentUser();
+        if (!user) return { accepted: [], incoming: [], outgoing: [] };
+        const rows = await request(
+            "/rest/v1/pyblocks_friendships?select=id,requester_id,addressee_id,status,created_at&order=created_at.desc",
+            { method: "GET" },
+            true,
+        );
+        const profiles = await getProfiles(
+            rows.map((row) =>
+                row.requester_id === user.id
+                    ? row.addressee_id
+                    : row.requester_id,
+            ),
+        );
+        const profileMap = new Map(
+            profiles.map((profile) => [profile.user_id, profile]),
+        );
+        const decorated = rows.map((row) => {
+            const otherId =
+                row.requester_id === user.id
+                    ? row.addressee_id
+                    : row.requester_id;
+            return { ...row, profile: profileMap.get(otherId) };
+        });
+        return {
+            accepted: decorated.filter((row) => row.status === "accepted"),
+            incoming: decorated.filter(
+                (row) =>
+                    row.status === "pending" && row.addressee_id === user.id,
+            ),
+            outgoing: decorated.filter(
+                (row) =>
+                    row.status === "pending" && row.requester_id === user.id,
+            ),
+        };
+    }
+
+    async function sendFriendRequest(username) {
+        const user = currentUser();
+        const target = await getProfileByUsername(String(username).trim());
+        if (!target) throw new Error("That PyBlocks user was not found.");
+        if (target.user_id === user?.id)
+            throw new Error("You cannot add yourself as a friend.");
+        await request(
+            "/rest/v1/pyblocks_friendships",
+            {
+                method: "POST",
+                body: JSON.stringify({
+                    requester_id: user.id,
+                    addressee_id: target.user_id,
+                }),
+            },
+            true,
+        );
+        return target;
+    }
+
+    async function acceptFriendRequest(id) {
+        const rows = await request(
+            `/rest/v1/pyblocks_friendships?id=eq.${encodeURIComponent(id)}`,
+            {
+                method: "PATCH",
+                headers: { Prefer: "return=representation" },
+                body: JSON.stringify({
+                    status: "accepted",
+                    updated_at: new Date().toISOString(),
+                }),
+            },
+            true,
+        );
+        return rows?.[0] || null;
+    }
+
+    async function createLiveLobby(projectId) {
+        const user = currentUser();
+        if (!user) throw new Error("Sign in to start Live Edit.");
+        const existing = await request(
+            `/rest/v1/pyblocks_live_lobbies?project_id=eq.${encodeURIComponent(projectId)}&select=id,project_id,owner_id,is_open&limit=1`,
+            { method: "GET" },
+            true,
+        );
+        let lobby = existing?.[0];
+        if (!lobby) {
+            const rows = await request(
+                "/rest/v1/pyblocks_live_lobbies",
+                {
+                    method: "POST",
+                    headers: { Prefer: "return=representation" },
+                    body: JSON.stringify({
+                        project_id: projectId,
+                        owner_id: user.id,
+                    }),
+                },
+                true,
+            );
+            lobby = rows?.[0];
+        }
+        await request(
+            "/rest/v1/pyblocks_live_lobby_members?on_conflict=lobby_id,user_id",
+            {
+                method: "POST",
+                headers: { Prefer: "resolution=merge-duplicates" },
+                body: JSON.stringify({ lobby_id: lobby.id, user_id: user.id }),
+            },
+            true,
+        );
+        return lobby;
+    }
+
+    async function inviteFriendToLobby(lobbyId, recipientId) {
+        const user = currentUser();
+        await request(
+            "/rest/v1/pyblocks_live_invites",
+            {
+                method: "POST",
+                body: JSON.stringify({
+                    lobby_id: lobbyId,
+                    sender_id: user.id,
+                    recipient_id: recipientId,
+                }),
+            },
+            true,
+        );
+    }
+
+    async function listLiveInvites() {
+        const user = currentUser();
+        if (!user) return [];
+        const now = encodeURIComponent(new Date().toISOString());
+        const rows = await request(
+            `/rest/v1/pyblocks_live_invites?recipient_id=eq.${encodeURIComponent(user.id)}&status=eq.pending&expires_at=gt.${now}&select=id,lobby_id,sender_id,created_at,expires_at&order=created_at.desc`,
+            { method: "GET" },
+            true,
+        );
+        const profiles = await getProfiles(rows.map((row) => row.sender_id));
+        const profileMap = new Map(
+            profiles.map((profile) => [profile.user_id, profile]),
+        );
+        return rows.map((row) => ({
+            ...row,
+            sender: profileMap.get(row.sender_id),
+        }));
+    }
+
+    async function answerLiveInvite(id, accept) {
+        const rows = await request(
+            `/rest/v1/pyblocks_live_invites?id=eq.${encodeURIComponent(id)}`,
+            {
+                method: "PATCH",
+                headers: { Prefer: "return=representation" },
+                body: JSON.stringify({
+                    status: accept ? "accepted" : "dismissed",
+                    responded_at: new Date().toISOString(),
+                }),
+            },
+            true,
+        );
+        const invite = rows?.[0];
+        if (accept && invite) {
+            await request(
+                "/rest/v1/pyblocks_live_lobby_members",
+                {
+                    method: "POST",
+                    body: JSON.stringify({
+                        lobby_id: invite.lobby_id,
+                        user_id: currentUser().id,
+                    }),
+                },
+                true,
+            );
+        }
+        return invite;
+    }
+
+    async function getLiveLobby(lobbyId) {
+        const rows = await request(
+            `/rest/v1/pyblocks_live_lobbies?id=eq.${encodeURIComponent(lobbyId)}&select=id,project_id,owner_id,is_open&limit=1`,
+            { method: "GET" },
+            true,
+        );
+        return rows?.[0] || null;
+    }
+
+    async function listLiveMembers(lobbyId) {
+        const rows = await request(
+            `/rest/v1/pyblocks_live_lobby_members?lobby_id=eq.${encodeURIComponent(lobbyId)}&select=user_id,joined_at,last_seen_at`,
+            { method: "GET" },
+            true,
+        );
+        const profiles = await getProfiles(rows.map((row) => row.user_id));
+        const profileMap = new Map(
+            profiles.map((profile) => [profile.user_id, profile]),
+        );
+        return rows.map((row) => ({
+            ...row,
+            profile: profileMap.get(row.user_id),
+        }));
+    }
+
+    async function leaveLiveLobby(lobbyId) {
+        const user = currentUser();
+        if (!user) return;
+        await request(
+            `/rest/v1/pyblocks_live_lobby_members?lobby_id=eq.${encodeURIComponent(lobbyId)}&user_id=eq.${encodeURIComponent(user.id)}`,
+            { method: "DELETE" },
+            true,
+        );
+    }
+
+    async function touchLiveLobby(lobbyId) {
+        const user = currentUser();
+        if (!user) return;
+        await request(
+            `/rest/v1/pyblocks_live_lobby_members?lobby_id=eq.${encodeURIComponent(lobbyId)}&user_id=eq.${encodeURIComponent(user.id)}`,
+            {
+                method: "PATCH",
+                body: JSON.stringify({
+                    last_seen_at: new Date().toISOString(),
+                }),
+            },
+            true,
+        );
+    }
+
     return {
         configured,
         currentUser,
@@ -813,6 +1038,17 @@ window.PyBlocksCloud = (() => {
         setRankTag,
         publishAnnouncement,
         getActiveAnnouncements,
+        listFriends,
+        sendFriendRequest,
+        acceptFriendRequest,
+        createLiveLobby,
+        inviteFriendToLobby,
+        listLiveInvites,
+        answerLiveInvite,
+        getLiveLobby,
+        listLiveMembers,
+        leaveLiveLobby,
+        touchLiveLobby,
         compress,
         decompress,
     };

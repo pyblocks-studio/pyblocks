@@ -450,5 +450,9 @@ window.PyBlocksCloudController = (() => {
         }
     }
 
-    return { init, open, saveCurrentProject };
+    function getCurrentProjectId() {
+        return currentProjectId;
+    }
+
+    return { init, open, saveCurrentProject, getCurrentProjectId };
 })();

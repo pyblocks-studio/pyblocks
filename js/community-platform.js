@@ -5,6 +5,7 @@
     const cloud = window.PyBlocksCloud;
     if (!cloud?.configured()) return;
     const announcementTimers = new Map();
+    const shownLiveInvites = new Set();
     let adminOpen = false;
 
     function make(tag, className, text) {
@@ -345,11 +346,95 @@
         }
     }
 
+    function liveInviteStack() {
+        let stack = document.getElementById("live-invite-stack");
+        if (!stack) {
+            stack = make("section", "live-invite-stack");
+            stack.id = "live-invite-stack";
+            stack.setAttribute("aria-live", "polite");
+            document.body.append(stack);
+        }
+        return stack;
+    }
+
+    async function answerInvite(invite, accept, card) {
+        try {
+            card.classList.add("is-busy");
+            await cloud.answerLiveInvite(invite.id, accept);
+            card.remove();
+            if (accept)
+                window.location.href = `editor.html?live=${encodeURIComponent(invite.lobby_id)}`;
+        } catch (error) {
+            card.classList.remove("is-busy");
+            card.querySelector("p").textContent = error.message;
+        }
+    }
+
+    function renderLiveInvite(invite) {
+        if (shownLiveInvites.has(invite.id)) return;
+        shownLiveInvites.add(invite.id);
+        const sender =
+            invite.sender?.display_name ||
+            invite.sender?.username ||
+            "A friend";
+        const card = make("aside", "live-invite-card");
+        card.setAttribute("role", "dialog");
+        card.innerHTML = `<button type="button" class="live-invite-dismiss" aria-label="Dismiss invitation">×</button><small>PYBLOCKS LIVE EDIT</small><h2></h2><p>Join their project and edit blocks together.</p><div><button type="button" class="live-invite-accept">Accept & Join</button><button type="button" class="live-invite-alerts">Device alerts</button></div>`;
+        card.querySelector("h2").textContent = `${sender} invited you`;
+        card.querySelector(".live-invite-dismiss").addEventListener(
+            "click",
+            () => void answerInvite(invite, false, card),
+        );
+        card.querySelector(".live-invite-accept").addEventListener(
+            "click",
+            () => void answerInvite(invite, true, card),
+        );
+        const alerts = card.querySelector(".live-invite-alerts");
+        if (
+            !("Notification" in window) ||
+            window.Notification.permission === "granted"
+        )
+            alerts.hidden = true;
+        alerts.addEventListener("click", async () => {
+            const permission = await window.Notification.requestPermission();
+            alerts.hidden = permission === "granted";
+        });
+        liveInviteStack().append(card);
+        if (
+            "Notification" in window &&
+            window.Notification.permission === "granted"
+        ) {
+            const notification = new window.Notification(
+                "PyBlocks Live Edit invitation",
+                {
+                    body: `${sender} invited you to edit a project.`,
+                    icon: "assets/images/brand-icons/favicon.svg",
+                },
+            );
+            notification.onclick = () => {
+                window.focus();
+                card.scrollIntoView({ behavior: "smooth", block: "center" });
+            };
+        }
+    }
+
+    async function refreshLiveInvites() {
+        if (!cloud.currentUser()) return;
+        try {
+            const invites = await cloud.listLiveInvites();
+            invites.forEach(renderLiveInvite);
+        } catch {
+            // Invitations retry on the next realtime event or polling cycle.
+        }
+    }
+
     document.addEventListener("DOMContentLoaded", () => {
         void refreshAnnouncements();
         void refreshAdminAccess();
+        void refreshLiveInvites();
         window.setInterval(refreshAnnouncements, 5_000);
         window.setInterval(refreshAdminAccess, 5_000);
+        window.setInterval(refreshLiveInvites, 10_000);
     });
     document.addEventListener("pyblocks:realtime", (event) => {
         if (event.detail.table === "pyblocks_announcements") {
@@ -367,5 +452,7 @@
             event.detail.table === "pyblocks_profiles"
         )
             void refreshAdminAccess();
+        if (event.detail.table === "pyblocks_live_invites")
+            void refreshLiveInvites();
     });
 })();
