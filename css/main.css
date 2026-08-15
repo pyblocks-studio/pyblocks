@@ -1032,6 +1032,7 @@ html[data-font-size="large"] .navbar {
     background: transparent;
     color: inherit;
     font-size: 1.5rem;
+    cursor: pointer;
 }
 
 .live-edit-drawer section {
