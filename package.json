@@ -13,7 +13,7 @@
   "devDependencies": {
     "@axe-core/playwright": "4.10.2",
     "@playwright/test": "1.62.1",
-    "eslint": "9.32.0",
+    "eslint": "10.8.0",
     "http-server": "14.1.1",
     "prettier": "3.6.2"
   },
