@@ -1001,3 +1001,111 @@ html[data-font-size="large"] .navbar {
         padding: 10px;
     }
 }
+.live-edit-drawer {
+    position: fixed;
+    z-index: 1200;
+    top: 72px;
+    right: 16px;
+    width: min(360px, calc(100vw - 32px));
+    max-height: calc(100vh - 88px);
+    overflow: auto;
+    padding: 18px;
+    border: 1px solid var(--border, #30364d);
+    border-radius: 10px;
+    background: var(--panel, #171a26);
+    color: var(--text, #e8eaf2);
+    box-shadow: 0 20px 60px rgb(0 0 0 / 40%);
+}
+
+.live-edit-drawer > header,
+.live-friend-row,
+.live-member-row,
+.live-edit-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.live-edit-drawer header button {
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font-size: 1.5rem;
+}
+
+.live-edit-drawer section {
+    margin-top: 18px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border, #30364d);
+}
+
+.live-edit-drawer form {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.live-edit-drawer input,
+.live-edit-drawer form button,
+.live-friend-row button {
+    min-height: 36px;
+    border: 1px solid var(--border, #30364d);
+    border-radius: 6px;
+    padding: 7px 10px;
+    background: var(--surface, #202438);
+    color: inherit;
+}
+
+.live-friend-row,
+.live-member-row {
+    min-height: 42px;
+    padding: 5px 0;
+}
+
+.live-member-row {
+    justify-content: flex-start;
+}
+
+.live-member-row i {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+
+.live-remote-cursor {
+    position: fixed;
+    z-index: 3000;
+    pointer-events: none;
+    transform: translate(-2px, -2px);
+    transition:
+        left 50ms linear,
+        top 50ms linear;
+}
+
+.live-remote-cursor i {
+    display: block;
+    width: 0;
+    height: 0;
+    border-top: 18px solid var(--cursor-color);
+    border-right: 11px solid transparent;
+    transform: rotate(-18deg);
+}
+
+.live-remote-cursor span {
+    display: block;
+    margin: -2px 0 0 9px;
+    padding: 3px 7px;
+    border-radius: 4px;
+    background: var(--cursor-color);
+    color: #10121a;
+    font-size: 12px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.live-edit-active .live-edit-btn {
+    border-color: #9ece6a;
+    box-shadow: 0 0 0 2px rgb(158 206 106 / 18%);
+}

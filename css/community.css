@@ -2270,3 +2270,62 @@ body.modal-open {
         animation: none;
     }
 }
+.live-invite-stack {
+    position: fixed;
+    z-index: 2500;
+    right: 18px;
+    bottom: 18px;
+    display: grid;
+    width: min(390px, calc(100vw - 36px));
+    gap: 12px;
+}
+
+.live-invite-card {
+    position: relative;
+    padding: 18px;
+    border: 1px solid #7aa2f7;
+    border-radius: 10px;
+    background: #171a26;
+    color: #e8eaf2;
+    box-shadow: 0 18px 55px rgb(0 0 0 / 45%);
+}
+
+.live-invite-card h2,
+.live-invite-card p {
+    margin: 5px 0 10px;
+}
+
+.live-invite-card > div {
+    display: flex;
+    gap: 8px;
+}
+
+.live-invite-card button {
+    min-height: 36px;
+    border: 1px solid #414868;
+    border-radius: 6px;
+    padding: 7px 11px;
+    background: #24283b;
+    color: #e8eaf2;
+}
+
+.live-invite-card .live-invite-accept {
+    border-color: #7aa2f7;
+    background: #7aa2f7;
+    color: #11131d;
+    font-weight: 800;
+}
+
+.live-invite-card .live-invite-dismiss {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    border: 0;
+    background: transparent;
+    font-size: 1.3rem;
+}
+
+.live-invite-card.is-busy {
+    pointer-events: none;
+    opacity: 0.7;
+}
