@@ -564,8 +564,24 @@ window.PyBlocksCloud = (() => {
         );
         if (!rows?.length) throw new Error("Published project was not found.");
         const row = rows[0];
+        const contributorRows = await request(
+            `/rest/v1/pyblocks_project_contributors?project_id=eq.${encodeURIComponent(id)}&select=user_id,contributed_at&order=contributed_at.asc`,
+            { method: "GET" },
+        );
+        const contributorProfiles = await getProfiles(
+            contributorRows.map((contributor) => contributor.user_id),
+        );
+        const contributorMap = new Map(
+            contributorProfiles.map((contributor) => [
+                contributor.user_id,
+                contributor,
+            ]),
+        );
         return {
             ...row,
+            contributors: contributorRows
+                .map((contributor) => contributorMap.get(contributor.user_id))
+                .filter(Boolean),
             project: window.PyBlocksProjectFormat.parse(
                 await decompress(row.payload, row.encoding),
             ),
@@ -994,6 +1010,59 @@ window.PyBlocksCloud = (() => {
         );
     }
 
+    async function listLiveChatMessages(lobbyId) {
+        const rows = await request(
+            `/rest/v1/pyblocks_live_chat_messages?lobby_id=eq.${encodeURIComponent(lobbyId)}&select=id,sender_id,body,created_at&order=created_at.asc&limit=200`,
+            { method: "GET" },
+            true,
+        );
+        const profiles = await getProfiles(rows.map((row) => row.sender_id));
+        const profileMap = new Map(
+            profiles.map((chatProfile) => [chatProfile.user_id, chatProfile]),
+        );
+        return rows.map((row) => ({
+            ...row,
+            sender: profileMap.get(row.sender_id),
+        }));
+    }
+
+    async function sendLiveChatMessage(lobbyId, body) {
+        const message = String(body || "")
+            .trim()
+            .slice(0, 1000);
+        if (!message) throw new Error("Type a message first.");
+        const rows = await request(
+            "/rest/v1/pyblocks_live_chat_messages",
+            {
+                method: "POST",
+                headers: { Prefer: "return=representation" },
+                body: JSON.stringify({
+                    lobby_id: lobbyId,
+                    sender_id: currentUser().id,
+                    body: message,
+                }),
+            },
+            true,
+        );
+        return rows?.[0] || null;
+    }
+
+    async function endLiveLobby(lobbyId) {
+        const rows = await request(
+            `/rest/v1/pyblocks_live_lobbies?id=eq.${encodeURIComponent(lobbyId)}`,
+            {
+                method: "PATCH",
+                headers: { Prefer: "return=representation" },
+                body: JSON.stringify({
+                    is_open: false,
+                    updated_at: new Date().toISOString(),
+                }),
+            },
+            true,
+        );
+        return rows?.[0] || null;
+    }
+
     return {
         configured,
         currentUser,
@@ -1049,6 +1118,9 @@ window.PyBlocksCloud = (() => {
         listLiveMembers,
         leaveLiveLobby,
         touchLiveLobby,
+        listLiveChatMessages,
+        sendLiveChatMessage,
+        endLiveLobby,
         compress,
         decompress,
     };

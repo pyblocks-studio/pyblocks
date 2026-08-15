@@ -471,10 +471,21 @@
 
     function requestDashboardProjectDelete(project, refresh, opener) {
         const modal = document.getElementById("dashboard-delete-dialog");
+        const title = document.getElementById("dashboard-delete-title");
         const cancel = document.getElementById("dashboard-delete-cancel");
         const confirm = document.getElementById("dashboard-delete-confirm");
         const message = document.getElementById("dashboard-delete-message");
-        message.textContent = `Delete “${project.name}”? This permanently removes the cloud project and cannot be undone.`;
+        if (project.is_published) {
+            title.textContent = "Unpublish this project first";
+            message.textContent = `“${project.name}” is currently published. Turn off Published and save your changes before deleting it.`;
+            cancel.textContent = "Okay";
+            confirm.hidden = true;
+        } else {
+            title.textContent = "Delete project?";
+            message.textContent = `Delete “${project.name}”? This permanently removes the cloud project and cannot be undone.`;
+            cancel.textContent = "Don’t delete";
+            confirm.hidden = false;
+        }
         modal.hidden = false;
         document.body.classList.add("modal-open");
         cancel.focus();
@@ -485,6 +496,8 @@
             cancel.onclick = null;
             confirm.onclick = null;
             modal.onclick = null;
+            cancel.textContent = "Don’t delete";
+            confirm.hidden = false;
             opener.focus();
         };
         cancel.onclick = close;
@@ -947,6 +960,31 @@
         if (credit) {
             remixCreditNode.textContent = `REMIX · ${credit}`;
             remixCreditNode.hidden = false;
+        }
+        const collaborators = document.getElementById("project-collaborators");
+        const collaboratorList = document.getElementById(
+            "project-collaborator-list",
+        );
+        if (record.contributors?.length) {
+            collaboratorList.replaceChildren();
+            record.contributors.forEach((contributor) => {
+                const link = document.createElement("a");
+                link.className = "project-collaborator";
+                link.href = `profile.html?user=${encodeURIComponent(contributor.username)}`;
+                const avatar = document.createElement("img");
+                avatar.alt = "";
+                avatar.src =
+                    window.PyBlocksCloud.avatarUrl(contributor) ||
+                    "assets/images/brand-icons/favicon.svg";
+                link.append(
+                    avatar,
+                    document.createTextNode(
+                        contributor.display_name || contributor.username,
+                    ),
+                );
+                collaboratorList.append(link);
+            });
+            collaborators.hidden = false;
         }
         document.getElementById("project-detail-code").textContent = [
             `# ${record.project.name}`,

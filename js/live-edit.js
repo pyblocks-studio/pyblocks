@@ -16,6 +16,7 @@
     let heartbeatTimer = 0;
     let lastCursor = null;
     const cursorNodes = new Map();
+    const renderedChatIds = new Set();
 
     function make(tag, className, text) {
         const node = document.createElement(tag);
@@ -46,8 +47,9 @@
         drawer.innerHTML = `
             <header><div><small>PYBLOCKS</small><h2>Live Edit</h2></div><button type="button" data-live-close aria-label="Close Live Edit">×</button></header>
             <p id="live-edit-status" role="status">Start a lobby to code with up to three friends.</p>
-            <div class="live-edit-actions"><button class="btn btn-primary" type="button" data-live-start>Start lobby</button><button class="btn btn-secondary" type="button" data-live-leave hidden>Leave lobby</button></div>
+            <div class="live-edit-actions"><button class="btn btn-primary" type="button" data-live-start>Start lobby</button><button class="btn btn-secondary" type="button" data-live-leave hidden>Leave lobby</button><button class="btn btn-danger" type="button" data-live-end hidden>End room</button></div>
             <section><h3>Editors <span data-live-count>0/4</span></h3><div data-live-members class="live-member-list"><p class="text-muted">No active lobby.</p></div></section>
+            <details class="live-chat-panel" data-live-chat><summary>Room Chat</summary><div class="live-chat-messages" data-live-chat-messages><p class="text-muted">Start or join a lobby to chat.</p></div><form data-live-chat-form><input name="message" maxlength="1000" autocomplete="off" placeholder="Message the room" aria-label="Message the room"><button type="submit">Send</button></form></details>
             <section><h3>Friends</h3><form data-friend-add><input name="username" maxlength="32" placeholder="Username" required><button type="submit">Add</button></form><div data-friend-requests></div><div data-friend-list class="live-friend-list"></div></section>`;
         document.body.append(drawer);
 
@@ -66,6 +68,12 @@
         drawer
             .querySelector("[data-live-leave]")
             .addEventListener("click", () => void leaveLobby());
+        drawer
+            .querySelector("[data-live-end]")
+            .addEventListener("click", () => void endLobby());
+        drawer
+            .querySelector("[data-live-chat-form]")
+            .addEventListener("submit", (event) => void sendChat(event));
         drawer
             .querySelector("[data-friend-add]")
             .addEventListener("submit", async (event) => {
@@ -219,6 +227,15 @@
             )
             .on("broadcast", { event: "sync-request" }, () =>
                 broadcastWorkspace(),
+            )
+            .on("broadcast", { event: "chat" }, ({ payload }) =>
+                renderChatMessage(payload),
+            )
+            .on(
+                "broadcast",
+                { event: "room-ended" },
+                () =>
+                    void disconnectLobby("The host ended this Live Edit room."),
             );
         channel.subscribe(async (subscriptionStatus) => {
             if (subscriptionStatus !== "SUBSCRIBED") return;
@@ -232,6 +249,8 @@
             document.body.classList.add("live-edit-active");
             document.querySelector("[data-live-start]").hidden = true;
             document.querySelector("[data-live-leave]").hidden = false;
+            document.querySelector("[data-live-end]").hidden =
+                lobby.owner_id !== cloud.currentUser().id;
             await channel.send({
                 type: "broadcast",
                 event: "sync-request",
@@ -246,6 +265,94 @@
         window.PyBlocksWorkspace.addChangeListener(queueWorkspace);
         document.addEventListener("pointermove", queueCursor);
         await renderMembers();
+        await loadChat();
+    }
+
+    async function loadChat() {
+        const messages = document.querySelector("[data-live-chat-messages]");
+        if (!messages || !lobby) return;
+        messages.replaceChildren();
+        const history = await cloud.listLiveChatMessages(lobby.id);
+        if (!history.length)
+            messages.append(
+                make("p", "text-muted", "No messages yet. Say hello!"),
+            );
+        history.forEach(renderChatMessage);
+        messages.scrollTop = messages.scrollHeight;
+    }
+
+    function renderChatMessage(message) {
+        if (!message?.id || renderedChatIds.has(message.id)) return;
+        renderedChatIds.add(message.id);
+        const messages = document.querySelector("[data-live-chat-messages]");
+        if (!messages) return;
+        messages.querySelector(".text-muted")?.remove();
+        const mine = message.sender_id === cloud.currentUser()?.id;
+        const bubble = make(
+            "article",
+            `live-chat-message ${mine ? "is-mine" : "is-theirs"}`,
+        );
+        const sender = message.sender || {};
+        const avatar = document.createElement("img");
+        avatar.alt = "";
+        avatar.src =
+            message.avatar ||
+            cloud.avatarUrl(sender) ||
+            "assets/images/brand-icons/favicon.svg";
+        const content = make("div", "");
+        content.append(
+            make(
+                "strong",
+                "",
+                message.displayName ||
+                    sender.display_name ||
+                    sender.username ||
+                    "PyBlocks friend",
+            ),
+            make("p", "", message.body),
+        );
+        bubble.append(avatar, content);
+        messages.append(bubble);
+        messages.scrollTop = messages.scrollHeight;
+    }
+
+    async function sendChat(event) {
+        event.preventDefault();
+        if (!lobby || !channel) return status("Join a Live Edit room first.");
+        const input = event.currentTarget.elements.message;
+        try {
+            const saved = await cloud.sendLiveChatMessage(
+                lobby.id,
+                input.value,
+            );
+            input.value = "";
+            const payload = {
+                ...saved,
+                sender: profile,
+                displayName: profile.display_name || profile.username,
+                avatar: cloud.avatarUrl(profile),
+            };
+            renderChatMessage(payload);
+            await channel.send({
+                type: "broadcast",
+                event: "chat",
+                payload,
+            });
+        } catch (error) {
+            status(error.message);
+        }
+    }
+
+    async function endLobby() {
+        if (!lobby || lobby.owner_id !== cloud.currentUser()?.id) return;
+        if (!window.confirm("End this Live Edit room for everyone?")) return;
+        await cloud.endLiveLobby(lobby.id);
+        await channel.send({
+            type: "broadcast",
+            event: "room-ended",
+            payload: { endedBy: cloud.currentUser().id },
+        });
+        await disconnectLobby("You ended the Live Edit room.");
     }
 
     function hash(value) {
@@ -358,6 +465,10 @@
     }
 
     async function leaveLobby() {
+        await disconnectLobby("You left the Live Edit lobby.");
+    }
+
+    async function disconnectLobby(message) {
         if (!lobby) return;
         window.PyBlocksWorkspace.removeChangeListener(queueWorkspace);
         window.clearInterval(heartbeatTimer);
@@ -374,7 +485,14 @@
         document.body.classList.remove("live-edit-active");
         document.querySelector("[data-live-start]").hidden = false;
         document.querySelector("[data-live-leave]").hidden = true;
-        status("You left the Live Edit lobby.");
+        document.querySelector("[data-live-end]").hidden = true;
+        document
+            .querySelector("[data-live-chat-messages]")
+            ?.replaceChildren(
+                make("p", "text-muted", "Start or join a lobby to chat."),
+            );
+        renderedChatIds.clear();
+        status(message);
         await refreshFriends();
     }
 
