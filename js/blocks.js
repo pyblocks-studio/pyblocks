@@ -56,6 +56,14 @@ const PY_BLOCKS = [
         style: "variable_blocks",
     },
     {
+        type: "py_guide_assign",
+        message0: "score = %1",
+        args0: [{ type: "input_value", name: "VALUE" }],
+        previousStatement: null,
+        nextStatement: null,
+        style: "variable_blocks",
+    },
+    {
         type: "py_aug_assign",
         message0: "%1 %2= %3",
         args0: [
@@ -1118,6 +1126,7 @@ py.forBlock.py_from_import = (b) =>
     `from ${dottedName(b)} import ${name(b, "MEMBER")}${b.getFieldValue("ALIAS")?.trim() ? ` as ${name(b, "ALIAS")}` : ""}\n`;
 py.forBlock.py_assign = (b, g) =>
     `${variableName(b)} = ${value(g, b, "VALUE")}\n`;
+py.forBlock.py_guide_assign = (b, g) => `score = ${value(g, b, "VALUE")}\n`;
 py.forBlock.py_aug_assign = (b, g) =>
     `${variableName(b)} ${b.getFieldValue("OP")}= ${value(g, b, "VALUE", "0")}\n`;
 py.forBlock.py_variable = (b) => expr(variableName(b), O.ATOMIC);

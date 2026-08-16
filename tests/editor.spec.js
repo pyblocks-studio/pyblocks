@@ -45,6 +45,12 @@ test("help, tutorial, pygame preview, and risky export warning work", async ({
     await expect(
         page.getByRole("heading", { name: "PyBlocks Python Guide" }),
     ).toBeVisible();
+    await expect(
+        page.locator(".guide-block-preview .blocklyBlockCanvas"),
+    ).toHaveCount(4);
+    await expect(
+        page.locator(".guide-block-preview:has(.blocklyBlock)"),
+    ).toHaveCount(4);
     await page.getByRole("button", { name: "Close help" }).click();
 
     await page.getByRole("button", { name: "Libraries" }).click();
