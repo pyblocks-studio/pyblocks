@@ -34,12 +34,9 @@ test("editor starts without page errors and essential actions remain visible", a
     expect(errors).toEqual([]);
 });
 
-test("help, tutorial, pygame preview, and risky export warning work", async ({
+test("help, tutorial link, pygame preview, and risky export warning work", async ({
     page,
 }) => {
-    await page.addInitScript(() =>
-        localStorage.setItem("pyblocks-editor-tutorial-v1", "complete"),
-    );
     await page.goto("/editor.html");
     await page.getByRole("button", { name: "Help" }).click();
     await expect(
@@ -51,6 +48,11 @@ test("help, tutorial, pygame preview, and risky export warning work", async ({
     await expect(
         page.locator(".guide-block-preview:has(.blocklyBlock)"),
     ).toHaveCount(4);
+    await expect(
+        page.getByRole("link", {
+            name: "Watch PyBlocks tutorials on YouTube",
+        }),
+    ).toHaveAttribute("href", /youtube\.com\/@pyblocksstudio/);
     await page.getByRole("button", { name: "Close help" }).click();
 
     await page.getByRole("button", { name: "Libraries" }).click();
