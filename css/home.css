@@ -649,22 +649,14 @@ button.nav-link:hover {
     border-color: #ff5a67;
     box-shadow: 0 16px 40px rgb(0 0 0 / 28%);
 }
-.youtube-icon,
-.pinterest-icon {
+.social-logo {
     width: 48px;
-    height: 36px;
-    border-radius: 9px;
-    background: #ff3347;
-    display: grid;
-    place-items: center;
+    height: 48px;
     flex: 0 0 auto;
+    object-fit: contain;
 }
-.pinterest-icon {
-    border-radius: 50%;
-    background: #e60023;
-    font:
-        800 1.25rem Georgia,
-        serif;
+.youtube-logo {
+    width: 54px;
 }
 .pinterest-card {
     background: linear-gradient(120deg, #1b1d29, #28151a);
