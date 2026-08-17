@@ -98,12 +98,15 @@ window.PyBlocksCloud = (() => {
         }
         if (!response.ok) {
             if (response.status === 401) saveSession(null);
-            throw new Error(
+            const error = new Error(
                 body?.msg ||
                     body?.message ||
                     body?.error_description ||
                     `Cloud request failed (${response.status}).`,
             );
+            error.code = body?.code || "";
+            error.status = response.status;
+            throw error;
         }
         return body;
     }
@@ -834,21 +837,45 @@ window.PyBlocksCloud = (() => {
 
     async function sendFriendRequest(username) {
         const user = currentUser();
+        if (!user) throw new Error("Sign in to add friends.");
         const target = await getProfileByUsername(String(username).trim());
         if (!target) throw new Error("That PyBlocks user was not found.");
-        if (target.user_id === user?.id)
+        if (target.user_id === user.id)
             throw new Error("You cannot add yourself as a friend.");
-        await request(
-            "/rest/v1/pyblocks_friendships",
-            {
-                method: "POST",
-                body: JSON.stringify({
-                    requester_id: user.id,
-                    addressee_id: target.user_id,
-                }),
-            },
-            true,
-        );
+
+        const relationships = await listFriends();
+        const matchesTarget = (friendship) =>
+            friendship.profile?.user_id === target.user_id;
+        if (relationships.accepted.some(matchesTarget))
+            throw new Error(`You and @${target.username} are already friends.`);
+        if (relationships.incoming.some(matchesTarget))
+            throw new Error(
+                `@${target.username} already sent you a friend request. Accept it below.`,
+            );
+        if (relationships.outgoing.some(matchesTarget))
+            throw new Error(
+                `Your friend request to @${target.username} is already pending.`,
+            );
+
+        try {
+            await request(
+                "/rest/v1/pyblocks_friendships",
+                {
+                    method: "POST",
+                    body: JSON.stringify({
+                        requester_id: user.id,
+                        addressee_id: target.user_id,
+                    }),
+                },
+                true,
+            );
+        } catch (error) {
+            if (error.code === "23505")
+                throw new Error(
+                    `A friend request between you and @${target.username} already exists.`,
+                );
+            throw error;
+        }
         return target;
     }
 
