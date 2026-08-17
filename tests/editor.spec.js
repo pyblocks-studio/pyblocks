@@ -179,6 +179,10 @@ test("public navigation search works without signing in", async ({
         }),
     );
     await page.goto("/index.html");
+    await expect(page.getByRole("link", { name: /Pinterest/ })).toHaveAttribute(
+        "href",
+        "https://www.pinterest.com/pyblocks/",
+    );
     const navSearch = page
         .getByRole("search")
         .getByPlaceholder("Search projects or users…");

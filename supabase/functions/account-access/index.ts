@@ -33,34 +33,35 @@ function json(origin: string | null, status: number, body: unknown) {
 
 async function emailForIdentifier(identifier: string) {
     if (!/^[A-Za-z0-9_]{3,32}$/.test(identifier)) return null;
-
-    const profileResponse = await fetch(
-        `${supabaseUrl}/rest/v1/pyblocks_profiles?username=ilike.${encodeURIComponent(identifier)}&select=user_id&limit=1`,
-        {
-            headers: {
-                apikey: serviceKey,
-                Authorization: `Bearer ${serviceKey}`,
+    const target = identifier.toLowerCase();
+    for (let page = 1; page <= 50; page += 1) {
+        const response = await fetch(
+            `${supabaseUrl}/auth/v1/admin/users?page=${page}&per_page=1000`,
+            {
+                headers: {
+                    apikey: serviceKey,
+                    Authorization: `Bearer ${serviceKey}`,
+                },
             },
-        },
-    );
-    if (!profileResponse.ok) return null;
-    const profiles = await profileResponse.json();
-    const userId = profiles?.[0]?.user_id;
-    if (!userId) return null;
-
-    const userResponse = await fetch(
-        `${supabaseUrl}/auth/v1/admin/users/${encodeURIComponent(userId)}`,
-        {
-            headers: {
-                apikey: serviceKey,
-                Authorization: `Bearer ${serviceKey}`,
-            },
-        },
-    );
-    if (!userResponse.ok) return null;
-    const user = await userResponse.json();
-    const authUser = user?.user || user;
-    return typeof authUser?.email === "string" ? authUser.email : null;
+        );
+        if (!response.ok)
+            throw new Error(`auth lookup returned ${response.status}`);
+        const body = await response.json();
+        const users = Array.isArray(body)
+            ? body
+            : Array.isArray(body?.users)
+              ? body.users
+              : [];
+        const match = users.find((user: Record<string, unknown>) => {
+            const metadata = (user.user_metadata ||
+                user.raw_user_meta_data ||
+                {}) as Record<string, unknown>;
+            return String(metadata.username || "").toLowerCase() === target;
+        });
+        if (typeof match?.email === "string") return match.email;
+        if (users.length < 1000) break;
+    }
+    return null;
 }
 
 function rateLimitKey(identifier: string) {
@@ -117,7 +118,14 @@ Deno.serve(async (request: Request) => {
                 message: "Too many sign-in attempts. Try again in 10 minutes.",
             });
         const password = String(body.password || "");
-        const email = await emailForIdentifier(identifier);
+        let email: string | null = null;
+        try {
+            email = await emailForIdentifier(identifier);
+        } catch {
+            return json(origin, 503, {
+                message: "Username sign-in is temporarily unavailable.",
+            });
+        }
         if (!email || !password)
             return json(origin, 400, {
                 message: "Invalid username/email or password.",

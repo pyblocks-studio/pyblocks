@@ -624,8 +624,13 @@ button.nav-link:hover {
 .socials-section .section-heading {
     margin-bottom: 28px;
 }
+.socials-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+    max-width: 1080px;
+}
 .social-card {
-    max-width: 680px;
     padding: 24px 28px;
     border: 1px solid var(--border);
     background: linear-gradient(120deg, #1b1d29, #24171d);
@@ -644,7 +649,8 @@ button.nav-link:hover {
     border-color: #ff5a67;
     box-shadow: 0 16px 40px rgb(0 0 0 / 28%);
 }
-.youtube-icon {
+.youtube-icon,
+.pinterest-icon {
     width: 48px;
     height: 36px;
     border-radius: 9px;
@@ -652,6 +658,19 @@ button.nav-link:hover {
     display: grid;
     place-items: center;
     flex: 0 0 auto;
+}
+.pinterest-icon {
+    border-radius: 50%;
+    background: #e60023;
+    font:
+        800 1.25rem Georgia,
+        serif;
+}
+.pinterest-card {
+    background: linear-gradient(120deg, #1b1d29, #28151a);
+}
+.pinterest-card:hover {
+    border-color: #e60023;
 }
 .social-card span:nth-child(2) {
     display: grid;
@@ -905,6 +924,9 @@ html[data-font-size="large"] {
     .social-card {
         align-items: flex-start;
         flex-wrap: wrap;
+    }
+    .socials-grid {
+        grid-template-columns: 1fr;
     }
     .social-card b {
         width: 100%;
