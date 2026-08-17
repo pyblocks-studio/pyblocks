@@ -25,6 +25,7 @@ window.PyBlocksAccountPortal = (() => {
         </div>
         <div id="account-menu" class="account-menu" hidden>
           <a href="dashboard.html">Dashboard</a>
+          <a href="friends.html">Friends</a>
           <a href="achievements.html">Achievements</a>
           <a href="editor.html">New project</a>
         </div>`;

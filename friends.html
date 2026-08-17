@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta
+            http-equiv="Content-Security-Policy"
+            content="default-src 'self'; script-src 'self'; connect-src 'self' https://*.supabase.co wss://*.supabase.co; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://*.supabase.co; object-src 'none'; base-uri 'self'"
+        />
+        <title>Friends — PyBlocks</title>
+        <link rel="icon" href="assets/images/brand-icons/favicon.svg" />
+        <link rel="stylesheet" href="css/home.css" />
+        <link rel="stylesheet" href="css/community.css" />
+    </head>
+    <body class="community-page" data-page="friends">
+        <nav class="site-nav">
+            <a class="brand" href="index.html"
+                ><span class="brand-mark">Py</span>PyBlocks</a
+            >
+            <div class="nav-actions">
+                <a class="nav-link" href="dashboard.html">Dashboard</a>
+                <a class="nav-link nav-create" href="editor.html">Create</a>
+            </div>
+        </nav>
+        <main class="community-shell friends-shell">
+            <header class="friends-heading">
+                <p class="eyebrow">Your community</p>
+                <h1>Friends</h1>
+                <p>
+                    Find PyBlocks creators, manage requests, and see everyone
+                    you can invite to Live Edit.
+                </p>
+            </header>
+            <section class="dashboard-section">
+                <div class="section-row">
+                    <div>
+                        <p class="eyebrow">Find people</p>
+                        <h2>Search users</h2>
+                    </div>
+                    <span id="friends-status" role="status"></span>
+                </div>
+                <form
+                    id="friends-search"
+                    class="community-search"
+                    role="search"
+                >
+                    <label class="sr-only" for="friends-query"
+                        >Search by username or display name</label
+                    >
+                    <input
+                        id="friends-query"
+                        maxlength="40"
+                        placeholder="Search by username or display name…"
+                        required
+                    />
+                    <button class="primary-cta" type="submit">Search</button>
+                </form>
+                <div id="friends-results" class="friends-grid"></div>
+            </section>
+            <section class="dashboard-section">
+                <div class="section-row">
+                    <div>
+                        <p class="eyebrow">Requests</p>
+                        <h2>Friend requests</h2>
+                    </div>
+                </div>
+                <div id="friend-requests" class="friends-grid"></div>
+            </section>
+            <section class="dashboard-section">
+                <div class="section-row">
+                    <div>
+                        <p class="eyebrow">Connected</p>
+                        <h2>Your friends</h2>
+                    </div>
+                </div>
+                <div id="friends-list" class="friends-grid"></div>
+            </section>
+        </main>
+        <script src="js/cloud-config.js"></script>
+        <script src="vendor/supabase.js"></script>
+        <script src="js/cloud-service.js?v=20260816-friends-updates"></script>
+        <script src="js/live-sync.js?v=20260816-updates"></script>
+        <script src="js/friends.js"></script>
+        <script src="js/community-platform.js?v=20260816-updates"></script>
+    </body>
+</html>

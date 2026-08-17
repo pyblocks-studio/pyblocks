@@ -29,10 +29,24 @@
         "pyblocks_announcements",
         "pyblocks_friendships",
         "pyblocks_live_invites",
+        "pyblocks_updates",
+        "pyblocks_site_commands",
     ];
     let channel = null;
 
     function emitChange(payload) {
+        if (
+            payload.table === "pyblocks_site_commands" &&
+            payload.eventType === "INSERT" &&
+            payload.new?.command === "reload"
+        ) {
+            const storageKey = "pyblocks-last-site-command";
+            if (window.sessionStorage.getItem(storageKey) !== payload.new.id) {
+                window.sessionStorage.setItem(storageKey, payload.new.id);
+                window.location.reload();
+            }
+            return;
+        }
         document.dispatchEvent(
             new CustomEvent("pyblocks:realtime", {
                 detail: {

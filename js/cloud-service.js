@@ -611,7 +611,7 @@ window.PyBlocksCloud = (() => {
     async function searchUsers(query) {
         const pattern = `*${String(query).replace(/[%*,()]/g, "")}*`;
         return request(
-            `/rest/v1/pyblocks_profiles?username=ilike.${encodeURIComponent(pattern)}&select=${PROFILE_FIELDS}&order=username.asc&limit=30`,
+            `/rest/v1/pyblocks_profiles?or=(username.ilike.${encodeURIComponent(pattern)},display_name.ilike.${encodeURIComponent(pattern)})&select=${PROFILE_FIELDS}&order=username.asc&limit=30`,
             { method: "GET" },
         );
     }
@@ -795,6 +795,70 @@ window.PyBlocksCloud = (() => {
             ...row,
             author: profileMap.get(row.author_id),
         }));
+    }
+
+    async function listUpdates() {
+        return request(
+            "/rest/v1/pyblocks_updates?select=id,title,description,version,status,created_at,activated_at&order=created_at.desc&limit=100",
+            { method: "GET" },
+            Boolean(currentUser()),
+        );
+    }
+
+    async function queueUpdate({ title, description, version }) {
+        const user = currentUser();
+        if (!user) throw new Error("Sign in to queue an update.");
+        const rows = await request(
+            "/rest/v1/pyblocks_updates",
+            {
+                method: "POST",
+                headers: { Prefer: "return=representation" },
+                body: JSON.stringify({
+                    title: String(title).trim().slice(0, 100),
+                    description: String(description || "")
+                        .trim()
+                        .slice(0, 1000),
+                    version: String(version || "")
+                        .trim()
+                        .slice(0, 40),
+                    created_by: user.id,
+                }),
+            },
+            true,
+        );
+        return rows?.[0] || null;
+    }
+
+    async function activateUpdate(id) {
+        const rows = await request(
+            `/rest/v1/pyblocks_updates?id=eq.${encodeURIComponent(id)}&status=eq.queued`,
+            {
+                method: "PATCH",
+                headers: { Prefer: "return=representation" },
+                body: JSON.stringify({
+                    status: "live",
+                    activated_at: new Date().toISOString(),
+                }),
+            },
+            true,
+        );
+        return rows?.[0] || null;
+    }
+
+    async function reloadEveryone() {
+        const user = currentUser();
+        if (!user) throw new Error("Sign in to reload the site.");
+        await request(
+            "/rest/v1/pyblocks_site_commands",
+            {
+                method: "POST",
+                body: JSON.stringify({
+                    command: "reload",
+                    created_by: user.id,
+                }),
+            },
+            true,
+        );
     }
 
     async function listFriends() {
@@ -1143,6 +1207,10 @@ window.PyBlocksCloud = (() => {
         setRankTag,
         publishAnnouncement,
         getActiveAnnouncements,
+        listUpdates,
+        queueUpdate,
+        activateUpdate,
+        reloadEveryone,
         listFriends,
         sendFriendRequest,
         acceptFriendRequest,

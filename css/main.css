@@ -1043,6 +1043,13 @@ html[data-font-size="large"] .navbar {
     padding: 5px 0;
 }
 
+.live-manage-friends {
+    display: inline-block;
+    margin-top: 10px;
+    color: var(--blue, #7aa2f7);
+    font-weight: 700;
+}
+
 .live-member-row {
     justify-content: flex-start;
 }

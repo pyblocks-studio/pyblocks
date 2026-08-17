@@ -17,6 +17,7 @@
     let lastCursor = null;
     const cursorNodes = new Map();
     const renderedChatIds = new Set();
+    let acceptedFriends = [];
 
     function make(tag, className, text) {
         const node = document.createElement(tag);
@@ -50,7 +51,7 @@
             <div class="live-edit-actions"><button class="btn btn-primary" type="button" data-live-start>Start lobby</button><button class="btn btn-secondary" type="button" data-live-leave hidden>Leave lobby</button><button class="btn btn-danger" type="button" data-live-end hidden>End room</button></div>
             <section><h3>Editors <span data-live-count>0/4</span></h3><div data-live-members class="live-member-list"><p class="text-muted">No active lobby.</p></div></section>
             <details class="live-chat-panel" data-live-chat><summary>Room Chat</summary><div class="live-chat-messages" data-live-chat-messages><p class="text-muted">Start or join a lobby to chat.</p></div><form data-live-chat-form><input name="message" maxlength="1000" autocomplete="off" placeholder="Message the room" aria-label="Message the room"><button type="submit">Send</button></form></details>
-            <section><h3>Friends</h3><form data-friend-add><input name="username" maxlength="32" placeholder="Username" required><button type="submit">Add</button></form><div data-friend-requests></div><div data-friend-list class="live-friend-list"></div></section>`;
+            <section><h3>Invite friends</h3><input data-friend-filter maxlength="40" placeholder="Search your friends…" aria-label="Search your friends"><div data-friend-list class="live-friend-list"></div><a class="live-manage-friends" href="friends.html">Manage friends →</a></section>`;
         document.body.append(drawer);
 
         button.addEventListener("click", async () => {
@@ -75,85 +76,83 @@
             .querySelector("[data-live-chat-form]")
             .addEventListener("submit", (event) => void sendChat(event));
         drawer
-            .querySelector("[data-friend-add]")
-            .addEventListener("submit", async (event) => {
-                event.preventDefault();
-                const input = event.currentTarget.elements.username;
+            .querySelector("[data-friend-filter]")
+            .addEventListener("input", renderFriendInvites);
+    }
+
+    function renderFriendInvites() {
+        const list = document.querySelector("[data-friend-list]");
+        const query = document
+            .querySelector("[data-friend-filter]")
+            ?.value.trim()
+            .toLowerCase();
+        if (!list) return;
+        const visible = acceptedFriends.filter((friend) => {
+            const username = friend.profile?.username?.toLowerCase() || "";
+            const displayName =
+                friend.profile?.display_name?.toLowerCase() || "";
+            return (
+                !query ||
+                username.includes(query) ||
+                displayName.includes(query)
+            );
+        });
+        list.replaceChildren();
+        if (!visible.length) {
+            list.append(
+                make(
+                    "p",
+                    "text-muted",
+                    acceptedFriends.length
+                        ? "No friends match that search."
+                        : "No friends yet. Add people from the Friends page.",
+                ),
+            );
+            return;
+        }
+        visible.forEach((friend) => {
+            const row = make("div", "live-friend-row");
+            row.append(
+                make(
+                    "span",
+                    "",
+                    friend.profile?.display_name ||
+                        `@${friend.profile?.username || "friend"}`,
+                ),
+            );
+            const invite = make("button", "", "Invite");
+            invite.type = "button";
+            invite.disabled = !lobby;
+            invite.addEventListener("click", async () => {
                 try {
-                    const target = await cloud.sendFriendRequest(input.value);
-                    input.value = "";
-                    status(`Friend request sent to @${target.username}.`);
-                    await refreshFriends();
+                    await cloud.inviteFriendToLobby(
+                        lobby.id,
+                        friend.profile.user_id,
+                    );
+                    invite.textContent = "Invited";
+                    invite.disabled = true;
                 } catch (error) {
                     status(error.message);
                 }
             });
+            row.append(invite);
+            list.append(row);
+        });
     }
 
     async function refreshFriends() {
         const list = document.querySelector("[data-friend-list]");
-        const requests = document.querySelector("[data-friend-requests]");
-        if (!list || !requests) return;
+        if (!list) return;
         if (!cloud.currentUser()) {
             list.replaceChildren(
                 make("p", "text-muted", "Sign in to use Live Edit."),
             );
-            requests.replaceChildren();
             return;
         }
         try {
             const friends = await cloud.listFriends();
-            requests.replaceChildren();
-            friends.incoming.forEach((friend) => {
-                const row = make("div", "live-friend-row");
-                row.append(
-                    make(
-                        "span",
-                        "",
-                        `@${friend.profile?.username || "friend"}`,
-                    ),
-                );
-                const accept = make("button", "", "Accept");
-                accept.type = "button";
-                accept.addEventListener("click", async () => {
-                    await cloud.acceptFriendRequest(friend.id);
-                    await refreshFriends();
-                });
-                row.append(accept);
-                requests.append(row);
-            });
-            list.replaceChildren();
-            if (!friends.accepted.length)
-                list.append(
-                    make("p", "text-muted", "No accepted friends yet."),
-                );
-            friends.accepted.forEach((friend) => {
-                const row = make("div", "live-friend-row");
-                row.append(
-                    make(
-                        "span",
-                        "",
-                        `@${friend.profile?.username || "friend"}`,
-                    ),
-                );
-                const invite = make("button", "", "Invite");
-                invite.type = "button";
-                invite.disabled = !lobby;
-                invite.addEventListener("click", async () => {
-                    try {
-                        await cloud.inviteFriendToLobby(
-                            lobby.id,
-                            friend.profile.user_id,
-                        );
-                        invite.textContent = "Invited";
-                        invite.disabled = true;
-                    } catch (error) {
-                        status(error.message);
-                    }
-                });
-                row.append(invite);
-                list.append(row);
-            });
+            acceptedFriends = friends.accepted;
+            renderFriendInvites();
         } catch (error) {
             status(error.message);
         }

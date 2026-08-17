@@ -131,6 +131,7 @@
         drawer.innerHTML = `
             <header><div><small>PYBLOCKS CONTROL</small><h2>Admin</h2></div><button type="button" data-admin-close aria-label="Close admin panel">×</button></header>
             <section><h3>Global announcement</h3><form data-announce><textarea maxlength="500" required placeholder="Message everyone…"></textarea><button class="admin-primary" type="submit">ANNOUNCE</button></form></section>
+            <section><h3>Updates</h3><form data-update-queue><input name="title" maxlength="100" required placeholder="Update title"><input name="version" maxlength="40" placeholder="Version (optional)"><textarea name="description" maxlength="1000" placeholder="What changes in this update?"></textarea><button class="admin-secondary" type="submit">QUEUE UPDATE</button></form><div class="admin-update-list" data-update-list></div><button class="admin-primary" type="button" data-reload-everyone>RELOAD EVERYONE</button><p class="admin-muted">Activating publishes the release flag. Reload refreshes every currently connected PyBlocks page.</p></section>
             <section><h3>Manage banners</h3><form data-banner-gift><input name="username" placeholder="Target username" required><select name="banner"></select><select name="audience"><option value="user">This user</option><option value="active">All active users</option><option value="all">All users</option></select><div class="admin-action-grid"><button class="admin-primary" type="submit">GIVE BANNER</button><button class="admin-secondary" type="button" data-revoke-banner>REVOKE BANNER</button><button class="admin-secondary" type="button" data-give-all-banners>GIVE ALL BANNERS</button><button class="danger-action" type="button" data-revoke-all-banners>REVOKE ALL BANNERS</button></div></form><p class="admin-muted">Revoke and all-banner actions only affect the typed username. Achievement banners remain protected.</p><button type="button" class="admin-secondary" data-gift-achievement>Give “Free Giveaway” gift</button></section>
             <section><h3>Give achievement</h3><form data-achievement-gift><input name="username" placeholder="Target username" required><select name="achievement"></select><button class="admin-primary" type="submit">GIVE ACHIEVEMENT</button></form><p class="admin-muted">The achievement and its banner reward, when present, unlock immediately.</p></section>
             <section><h3>Profile rank tag</h3><form data-rank-tag><input name="username" placeholder="Username" required><input name="rank" maxlength="20" placeholder="ADMIN, MODERATOR, HELPER"><button class="admin-primary" type="submit">SET TAG</button></form><p class="admin-muted">Leave the tag blank to remove it. OWNER and PYBLOCKS CREATOR cannot be assigned.</p></section>
@@ -151,6 +152,82 @@
         drawer
             .querySelector("[data-admin-close]")
             .addEventListener("click", () => toggle(false));
+
+        const updateList = drawer.querySelector("[data-update-list]");
+        const renderUpdates = async () => {
+            updateList.replaceChildren(
+                make("p", "admin-muted", "Loading updates…"),
+            );
+            try {
+                const updates = await cloud.listUpdates();
+                updateList.replaceChildren();
+                updates.forEach((update) => {
+                    const row = make("article", "admin-update-row");
+                    row.append(
+                        make(
+                            "strong",
+                            "",
+                            `${update.title}${update.version ? ` · ${update.version}` : ""}`,
+                        ),
+                        make(
+                            "small",
+                            "",
+                            update.status === "live" ? "LIVE" : "QUEUED",
+                        ),
+                    );
+                    if (update.description)
+                        row.append(make("span", "", update.description));
+                    if (update.status === "queued") {
+                        const activate = make(
+                            "button",
+                            "admin-primary",
+                            "MAKE LIVE",
+                        );
+                        activate.type = "button";
+                        activate.addEventListener("click", async () => {
+                            activate.disabled = true;
+                            await cloud.activateUpdate(update.id);
+                            setFeedback(`${update.title} is now live.`);
+                            await renderUpdates();
+                        });
+                        row.append(activate);
+                    }
+                    updateList.append(row);
+                });
+                if (!updates.length)
+                    updateList.append(
+                        make("p", "admin-muted", "No updates queued yet."),
+                    );
+            } catch (error) {
+                updateList.replaceChildren(
+                    make("p", "admin-error", error.message),
+                );
+            }
+        };
+        drawer
+            .querySelector("[data-update-queue]")
+            .addEventListener("submit", async (event) => {
+                event.preventDefault();
+                const values = Object.fromEntries(
+                    new window.FormData(event.currentTarget),
+                );
+                await cloud.queueUpdate(values);
+                event.currentTarget.reset();
+                setFeedback(`${values.title} was queued.`);
+                await renderUpdates();
+            });
+        drawer
+            .querySelector("[data-reload-everyone]")
+            .addEventListener("click", async () => {
+                if (
+                    !window.confirm(
+                        "Reload every currently connected PyBlocks page now? Unsaved local work may be interrupted.",
+                    )
+                )
+                    return;
+                await cloud.reloadEveryone();
+            });
+        await renderUpdates();
 
         const banners = await cloud.listBanners();
         const bannerSelect = drawer.querySelector("[name='banner']");
