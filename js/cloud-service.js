@@ -151,11 +151,20 @@ window.PyBlocksCloud = (() => {
     }
 
     async function signIn({ identifier, password }) {
-        const body = await accountAccess({
-            action: "signin",
-            identifier,
-            password,
-        });
+        const normalizedIdentifier = String(identifier || "").trim();
+        const body = normalizedIdentifier.includes("@")
+            ? await request("/auth/v1/token?grant_type=password", {
+                  method: "POST",
+                  body: JSON.stringify({
+                      email: normalizedIdentifier.toLowerCase(),
+                      password,
+                  }),
+              })
+            : await accountAccess({
+                  action: "signin",
+                  identifier: normalizedIdentifier,
+                  password,
+              });
         saveSession(body);
         return currentUser();
     }

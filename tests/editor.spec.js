@@ -109,6 +109,53 @@ test("Python import is absent and cloud projects compress losslessly", async ({
     expect(roundTrip.matches).toBe(true);
     expect(["gzip-base64", "base64"]).toContain(roundTrip.encoding);
 
+    const signInRoutes = await page.evaluate(async () => {
+        const originalFetch = window.fetch;
+        const routes = [];
+        window.fetch = async (url) => {
+            routes.push(String(url));
+            return new Response(
+                JSON.stringify({
+                    access_token: "test-access",
+                    refresh_token: "test-refresh",
+                    expires_at: Math.floor(Date.now() / 1000) + 3600,
+                    user: {
+                        id: "00000000-0000-0000-0000-000000000001",
+                        email: "user@example.com",
+                        user_metadata: { username: "tester" },
+                    },
+                }),
+                {
+                    status: 200,
+                    headers: { "Content-Type": "application/json" },
+                },
+            );
+        };
+        try {
+            await window.PyBlocksCloud.signIn({
+                identifier: "user@example.com",
+                password: "not-a-real-password",
+            });
+            await window.PyBlocksCloud.signOut();
+            await window.PyBlocksCloud.signIn({
+                identifier: "tester",
+                password: "not-a-real-password",
+            });
+            const usernameRoute = routes.at(-1);
+            await window.PyBlocksCloud.signOut();
+            return { routes, usernameRoute };
+        } finally {
+            window.fetch = originalFetch;
+            localStorage.removeItem("pyblocks-cloud-session-v1");
+        }
+    });
+    expect(signInRoutes.routes[0]).toContain(
+        "/auth/v1/token?grant_type=password",
+    );
+    expect(signInRoutes.usernameRoute).toContain(
+        "/functions/v1/account-access",
+    );
+
     await page.getByRole("button", { name: "Sign in" }).click();
     const cloudDialog = page.getByRole("dialog", { name: "PyBlocks Cloud" });
     await expect(cloudDialog).toBeVisible();

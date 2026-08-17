@@ -8,6 +8,9 @@ const allowedOrigins = new Set([
     "http://localhost:8080",
     "http://127.0.0.1:8080",
 ]);
+const attemptWindowMs = 10 * 60 * 1000;
+const maxAttemptsPerWindow = 5;
+const signInAttempts = new Map<string, { count: number; resetAt: number }>();
 
 function headers(origin: string | null) {
     const allowed = origin && allowedOrigins.has(origin) ? origin : "";
@@ -29,7 +32,6 @@ function json(origin: string | null, status: number, body: unknown) {
 }
 
 async function emailForIdentifier(identifier: string) {
-    if (identifier.includes("@")) return identifier.toLowerCase();
     if (!/^[A-Za-z0-9_]{3,32}$/.test(identifier)) return null;
 
     const profileResponse = await fetch(
@@ -61,6 +63,28 @@ async function emailForIdentifier(identifier: string) {
     return typeof authUser?.email === "string" ? authUser.email : null;
 }
 
+function rateLimitKey(identifier: string) {
+    return identifier.toLowerCase();
+}
+
+function isRateLimited(key: string) {
+    const now = Date.now();
+    const current = signInAttempts.get(key);
+    if (!current || current.resetAt <= now) {
+        signInAttempts.set(key, {
+            count: 1,
+            resetAt: now + attemptWindowMs,
+        });
+        return false;
+    }
+    current.count += 1;
+    return current.count > maxAttemptsPerWindow;
+}
+
+function clearAttempts(key: string) {
+    signInAttempts.delete(key);
+}
+
 Deno.serve(async (request: Request) => {
     const origin = request.headers.get("Origin");
     if (request.method === "OPTIONS")
@@ -76,13 +100,24 @@ Deno.serve(async (request: Request) => {
     }
 
     const action = String(body.action || "");
-    const identifier = String(body.identifier || "").trim().slice(0, 254);
+    const identifier = String(body.identifier || "")
+        .trim()
+        .slice(0, 254);
     if (!identifier)
         return json(origin, 400, { message: "Enter a username or email." });
 
-    const email = await emailForIdentifier(identifier);
     if (action === "signin") {
+        if (identifier.includes("@"))
+            return json(origin, 400, {
+                message: "Email sign-in must use Supabase Auth directly.",
+            });
+        const attemptKey = rateLimitKey(identifier);
+        if (isRateLimited(attemptKey))
+            return json(origin, 429, {
+                message: "Too many sign-in attempts. Try again in 10 minutes.",
+            });
         const password = String(body.password || "");
+        const email = await emailForIdentifier(identifier);
         if (!email || !password)
             return json(origin, 400, {
                 message: "Invalid username/email or password.",
@@ -102,6 +137,7 @@ Deno.serve(async (request: Request) => {
             return json(origin, 400, {
                 message: "Invalid username/email or password.",
             });
+        clearAttempts(attemptKey);
         return new Response(await authResponse.text(), {
             status: 200,
             headers: headers(origin),
@@ -109,16 +145,18 @@ Deno.serve(async (request: Request) => {
     }
 
     if (action === "recover") {
+        const email = identifier.includes("@")
+            ? identifier.toLowerCase()
+            : await emailForIdentifier(identifier);
         if (email) {
             const localOrigin =
                 origin === "http://localhost:8080" ||
                 origin === "http://127.0.0.1:8080"
                     ? origin
                     : "https://pyblocks-studio.github.io";
-            const path =
-                localOrigin.includes("github.io")
-                    ? "/pyblocks/reset-password.html"
-                    : "/reset-password.html";
+            const path = localOrigin.includes("github.io")
+                ? "/pyblocks/reset-password.html"
+                : "/reset-password.html";
             await fetch(
                 `${supabaseUrl}/auth/v1/recover?redirect_to=${encodeURIComponent(`${localOrigin}${path}`)}`,
                 {
