@@ -799,34 +799,18 @@ window.PyBlocksCloud = (() => {
 
     async function listUpdates() {
         return request(
-            "/rest/v1/pyblocks_updates?select=id,title,description,version,status,created_at,activated_at&order=created_at.desc&limit=100",
+            "/rest/v1/pyblocks_updates?select=id,feature_key,title,description,version,status,created_at,activated_at&order=created_at.desc&limit=100",
             { method: "GET" },
             Boolean(currentUser()),
         );
     }
 
-    async function queueUpdate({ title, description, version }) {
-        const user = currentUser();
-        if (!user) throw new Error("Sign in to queue an update.");
+    async function isUpdateLive(featureKey) {
         const rows = await request(
-            "/rest/v1/pyblocks_updates",
-            {
-                method: "POST",
-                headers: { Prefer: "return=representation" },
-                body: JSON.stringify({
-                    title: String(title).trim().slice(0, 100),
-                    description: String(description || "")
-                        .trim()
-                        .slice(0, 1000),
-                    version: String(version || "")
-                        .trim()
-                        .slice(0, 40),
-                    created_by: user.id,
-                }),
-            },
-            true,
+            `/rest/v1/pyblocks_updates?feature_key=eq.${encodeURIComponent(featureKey)}&status=eq.live&select=id&limit=1`,
+            { method: "GET" },
         );
-        return rows?.[0] || null;
+        return Boolean(rows?.length);
     }
 
     async function activateUpdate(id) {
@@ -1208,7 +1192,7 @@ window.PyBlocksCloud = (() => {
         publishAnnouncement,
         getActiveAnnouncements,
         listUpdates,
-        queueUpdate,
+        isUpdateLive,
         activateUpdate,
         reloadEveryone,
         listFriends,
