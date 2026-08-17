@@ -649,14 +649,16 @@ button.nav-link:hover {
     border-color: #ff5a67;
     box-shadow: 0 16px 40px rgb(0 0 0 / 28%);
 }
-.social-logo {
-    width: 48px;
-    height: 48px;
-    flex: 0 0 auto;
+.social-card > .social-logo {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    max-width: 40px;
+    min-height: 40px;
+    max-height: 40px;
+    flex: 0 0 40px;
+    display: block;
     object-fit: contain;
-}
-.youtube-logo {
-    width: 54px;
 }
 .pinterest-card {
     background: linear-gradient(120deg, #1b1d29, #28151a);
