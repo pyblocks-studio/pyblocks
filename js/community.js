@@ -12,6 +12,16 @@
     const EXPERIENCED_AGE_MS = 30 * 24 * 60 * 60 * 1000;
     const EXPERIENCED_ACTIVE_SECONDS = 2 * 60 * 60;
     const EXPERIENCED_PROJECTS = 5;
+    const OFFICIAL_ACCOUNT_TITLE = "PYBLOCKS OFFICIAL ACCOUNT";
+
+    function styleRankBadge(badge, profile) {
+        badge.className = "rank-badge";
+        if (
+            profile?.username?.toLowerCase() === "pyblocks" &&
+            profile?.rank_tag === OFFICIAL_ACCOUNT_TITLE
+        )
+            badge.classList.add("official-account-badge");
+    }
 
     function profileTitle(profile, publishedCount) {
         if (isOwner(profile)) return "PYBLOCKS CREATOR";
@@ -552,7 +562,7 @@
             document.getElementById("dashboard-rank-tags").append(badge);
         } else if (profile.rank_tag) {
             const badge = document.createElement("span");
-            badge.className = "rank-badge";
+            styleRankBadge(badge, profile);
             badge.textContent = profile.rank_tag;
             document.getElementById("dashboard-rank-tags").append(badge);
         }
@@ -836,6 +846,7 @@
             document.getElementById("owner-badge").hidden = false;
         } else if (profile.rank_tag) {
             const badge = document.getElementById("public-rank-badge");
+            styleRankBadge(badge, profile);
             badge.textContent = profile.rank_tag;
             badge.hidden = false;
         }
@@ -960,31 +971,6 @@
         if (credit) {
             remixCreditNode.textContent = `REMIX · ${credit}`;
             remixCreditNode.hidden = false;
-        }
-        const collaborators = document.getElementById("project-collaborators");
-        const collaboratorList = document.getElementById(
-            "project-collaborator-list",
-        );
-        if (record.contributors?.length) {
-            collaboratorList.replaceChildren();
-            record.contributors.forEach((contributor) => {
-                const link = document.createElement("a");
-                link.className = "project-collaborator";
-                link.href = `profile.html?user=${encodeURIComponent(contributor.username)}`;
-                const avatar = document.createElement("img");
-                avatar.alt = "";
-                avatar.src =
-                    window.PyBlocksCloud.avatarUrl(contributor) ||
-                    "assets/images/brand-icons/favicon.svg";
-                link.append(
-                    avatar,
-                    document.createTextNode(
-                        contributor.display_name || contributor.username,
-                    ),
-                );
-                collaboratorList.append(link);
-            });
-            collaborators.hidden = false;
         }
         document.getElementById("project-detail-code").textContent = [
             `# ${record.project.name}`,

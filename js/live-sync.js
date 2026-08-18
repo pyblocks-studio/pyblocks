@@ -28,7 +28,6 @@
         "pyblocks_admins",
         "pyblocks_announcements",
         "pyblocks_friendships",
-        "pyblocks_live_invites",
         "pyblocks_updates",
         "pyblocks_site_commands",
     ];

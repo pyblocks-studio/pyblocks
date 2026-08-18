@@ -5,7 +5,6 @@
     const cloud = window.PyBlocksCloud;
     if (!cloud?.configured()) return;
     const announcementTimers = new Map();
-    const shownLiveInvites = new Set();
     let adminOpen = false;
 
     function make(tag, className, text) {
@@ -134,7 +133,7 @@
             <section><h3>Updates</h3><p class="admin-muted">Queued updates appear here automatically after you ask Codex to queue a completed change.</p><div class="admin-update-list" data-update-list></div><button class="admin-primary" type="button" data-reload-everyone>RELOAD EVERYONE</button><p class="admin-muted">MAKE LIVE activates that update. Reload refreshes every currently connected PyBlocks page afterward.</p></section>
             <section><h3>Manage banners</h3><form data-banner-gift><input name="username" placeholder="Target username" required><select name="banner"></select><select name="audience"><option value="user">This user</option><option value="active">All active users</option><option value="all">All users</option></select><div class="admin-action-grid"><button class="admin-primary" type="submit">GIVE BANNER</button><button class="admin-secondary" type="button" data-revoke-banner>REVOKE BANNER</button><button class="admin-secondary" type="button" data-give-all-banners>GIVE ALL BANNERS</button><button class="danger-action" type="button" data-revoke-all-banners>REVOKE ALL BANNERS</button></div></form><p class="admin-muted">Revoke and all-banner actions only affect the typed username. Achievement banners remain protected.</p><button type="button" class="admin-secondary" data-gift-achievement>Give “Free Giveaway” gift</button></section>
             <section><h3>Give achievement</h3><form data-achievement-gift><input name="username" placeholder="Target username" required><select name="achievement"></select><button class="admin-primary" type="submit">GIVE ACHIEVEMENT</button></form><p class="admin-muted">The achievement and its banner reward, when present, unlock immediately.</p></section>
-            <section><h3>Profile rank tag</h3><form data-rank-tag><input name="username" placeholder="Username" required><input name="rank" maxlength="20" placeholder="ADMIN, MODERATOR, HELPER"><button class="admin-primary" type="submit">SET TAG</button></form><p class="admin-muted">Leave the tag blank to remove it. OWNER and PYBLOCKS CREATOR cannot be assigned.</p></section>
+            <section><h3>Profile title</h3><form data-rank-tag><input name="username" placeholder="Username" required><input name="rank" maxlength="32" placeholder="DEVELOPER, ADMIN, MODERATOR"><button class="admin-primary" type="submit">SET TITLE</button></form><p class="admin-muted">DEVELOPER can be given out. OWNER, PYBLOCKS CREATOR, and PYBLOCKS OFFICIAL ACCOUNT are protected identities.</p></section>
             <section data-owner-access ${owner ? "" : "hidden"}><h3>Admin access</h3><form data-admin-search><input name="username" placeholder="Type a username" required><button class="admin-secondary" type="submit">SEARCH</button></form><div class="admin-user-search" data-admin-result></div><div data-admin-list></div></section>
             <p class="admin-feedback" role="status"></p>`;
         document.body.append(tab, drawer);
@@ -411,95 +410,11 @@
         }
     }
 
-    function liveInviteStack() {
-        let stack = document.getElementById("live-invite-stack");
-        if (!stack) {
-            stack = make("section", "live-invite-stack");
-            stack.id = "live-invite-stack";
-            stack.setAttribute("aria-live", "polite");
-            document.body.append(stack);
-        }
-        return stack;
-    }
-
-    async function answerInvite(invite, accept, card) {
-        try {
-            card.classList.add("is-busy");
-            await cloud.answerLiveInvite(invite.id, accept);
-            card.remove();
-            if (accept)
-                window.location.href = `editor.html?live=${encodeURIComponent(invite.lobby_id)}`;
-        } catch (error) {
-            card.classList.remove("is-busy");
-            card.querySelector("p").textContent = error.message;
-        }
-    }
-
-    function renderLiveInvite(invite) {
-        if (shownLiveInvites.has(invite.id)) return;
-        shownLiveInvites.add(invite.id);
-        const sender =
-            invite.sender?.display_name ||
-            invite.sender?.username ||
-            "A friend";
-        const card = make("aside", "live-invite-card");
-        card.setAttribute("role", "dialog");
-        card.innerHTML = `<button type="button" class="live-invite-dismiss" aria-label="Dismiss invitation">×</button><small>PYBLOCKS LIVE EDIT</small><h2></h2><p>Join their project and edit blocks together.</p><div><button type="button" class="live-invite-accept">Accept & Join</button><button type="button" class="live-invite-alerts">Device alerts</button></div>`;
-        card.querySelector("h2").textContent = `${sender} invited you`;
-        card.querySelector(".live-invite-dismiss").addEventListener(
-            "click",
-            () => void answerInvite(invite, false, card),
-        );
-        card.querySelector(".live-invite-accept").addEventListener(
-            "click",
-            () => void answerInvite(invite, true, card),
-        );
-        const alerts = card.querySelector(".live-invite-alerts");
-        if (
-            !("Notification" in window) ||
-            window.Notification.permission === "granted"
-        )
-            alerts.hidden = true;
-        alerts.addEventListener("click", async () => {
-            const permission = await window.Notification.requestPermission();
-            alerts.hidden = permission === "granted";
-        });
-        liveInviteStack().append(card);
-        if (
-            "Notification" in window &&
-            window.Notification.permission === "granted"
-        ) {
-            const notification = new window.Notification(
-                "PyBlocks Live Edit invitation",
-                {
-                    body: `${sender} invited you to edit a project.`,
-                    icon: "assets/images/brand-icons/favicon.svg",
-                },
-            );
-            notification.onclick = () => {
-                window.focus();
-                card.scrollIntoView({ behavior: "smooth", block: "center" });
-            };
-        }
-    }
-
-    async function refreshLiveInvites() {
-        if (!cloud.currentUser()) return;
-        try {
-            const invites = await cloud.listLiveInvites();
-            invites.forEach(renderLiveInvite);
-        } catch {
-            // Invitations retry on the next realtime event or polling cycle.
-        }
-    }
-
     document.addEventListener("DOMContentLoaded", () => {
         void refreshAnnouncements();
         void refreshAdminAccess();
-        void refreshLiveInvites();
         window.setInterval(refreshAnnouncements, 5_000);
         window.setInterval(refreshAdminAccess, 5_000);
-        window.setInterval(refreshLiveInvites, 10_000);
     });
     document.addEventListener("pyblocks:realtime", (event) => {
         if (event.detail.table === "pyblocks_announcements") {
@@ -517,7 +432,5 @@
             event.detail.table === "pyblocks_profiles"
         )
             void refreshAdminAccess();
-        if (event.detail.table === "pyblocks_live_invites")
-            void refreshLiveInvites();
     });
 })();
