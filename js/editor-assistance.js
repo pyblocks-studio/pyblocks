@@ -1,63 +1,7 @@
 "use strict";
 
 window.PyBlocksEditorAssistance = (() => {
-    let pygameDismissed = false;
-    let dragging = null;
     let guideWorkspaces = [];
-
-    function setPygameEnabled(enabled) {
-        const panel = document.getElementById("pygame-window");
-        if (!panel) return;
-        if (!enabled) {
-            panel.hidden = true;
-            pygameDismissed = false;
-        } else if (!pygameDismissed) panel.hidden = false;
-    }
-
-    function initPygameWindow() {
-        const panel = document.getElementById("pygame-window");
-        const titlebar = document.getElementById("pygame-titlebar");
-        const fullscreen = document.getElementById("pygame-fullscreen-btn");
-        document
-            .getElementById("pygame-close-btn")
-            .addEventListener("click", () => {
-                panel.hidden = true;
-                pygameDismissed = true;
-            });
-        fullscreen.addEventListener("click", () => {
-            panel.classList.toggle("is-fullscreen");
-            fullscreen.textContent = panel.classList.contains("is-fullscreen")
-                ? "❐"
-                : "□";
-            fullscreen.setAttribute(
-                "aria-label",
-                panel.classList.contains("is-fullscreen")
-                    ? "Restore Pygame preview"
-                    : "Fullscreen Pygame preview",
-            );
-        });
-        titlebar.addEventListener("pointerdown", (event) => {
-            if (
-                event.target.closest("button") ||
-                panel.classList.contains("is-fullscreen")
-            )
-                return;
-            const rect = panel.getBoundingClientRect();
-            dragging = {
-                x: event.clientX - rect.left,
-                y: event.clientY - rect.top,
-            };
-            titlebar.setPointerCapture(event.pointerId);
-        });
-        titlebar.addEventListener("pointermove", (event) => {
-            if (!dragging) return;
-            panel.style.left = `${Math.max(0, Math.min(window.innerWidth - panel.offsetWidth, event.clientX - dragging.x))}px`;
-            panel.style.top = `${Math.max(0, Math.min(window.innerHeight - panel.offsetHeight, event.clientY - dragging.y))}px`;
-            panel.style.right = "auto";
-            panel.style.bottom = "auto";
-        });
-        titlebar.addEventListener("pointerup", () => (dragging = null));
-    }
 
     function connectValue(parent, inputName, child) {
         parent.getInput(inputName).connection.connect(child.outputConnection);
@@ -155,9 +99,8 @@ window.PyBlocksEditorAssistance = (() => {
     }
 
     function init(workspace) {
-        initPygameWindow();
         initHelp(workspace);
     }
 
-    return { init, setPygameEnabled };
+    return { init };
 })();

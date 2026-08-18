@@ -442,9 +442,6 @@ function initLibrariesDialog(workspace) {
             (input) => input.value,
         );
         window.PythonEngine.setLibraries(selected);
-        window.PyBlocksEditorAssistance?.setPygameEnabled(
-            selected.includes("pygame"),
-        );
         updateLibraryToolbox(workspace, selected, modules);
         count.textContent = selected.length
             ? `${selected.length} ${selected.length === 1 ? "library" : "libraries"} selected`
@@ -465,9 +462,6 @@ function initLibrariesDialog(workspace) {
             input.checked = selected.has(input.value);
         });
         updateLibraryToolbox(workspace, [...selected], modules);
-        window.PyBlocksEditorAssistance?.setPygameEnabled(
-            selected.has("pygame"),
-        );
         count.textContent = selected.size
             ? `${selected.size} ${selected.size === 1 ? "library" : "libraries"} selected`
             : "No libraries selected";

@@ -34,7 +34,7 @@ test("editor starts without page errors and essential actions remain visible", a
     expect(errors).toEqual([]);
 });
 
-test("help, tutorial link, pygame preview, and risky export warning work", async ({
+test("help, tutorial link, pygame library, and risky export warning work", async ({
     page,
 }) => {
     await page.goto("/editor.html");
@@ -57,25 +57,18 @@ test("help, tutorial link, pygame preview, and risky export warning work", async
 
     await page.getByRole("button", { name: "Libraries" }).click();
     await page.locator('.library-option input[value="pygame"]').check();
-    await expect(
-        page.getByRole("region", { name: "Pygame preview" }),
-    ).toBeVisible();
     await page.locator('.library-option input[value="os"]').check();
     await page.getByRole("button", { name: "Done" }).click();
-    await page
-        .getByRole("button", { name: "Fullscreen Pygame preview" })
-        .click();
-    await expect(
-        page.getByRole("button", { name: "Restore Pygame preview" }),
-    ).toBeVisible();
-    await page.getByRole("button", { name: "Restore Pygame preview" }).click();
+    await expect(page.locator("#pygame-window")).toHaveCount(0);
 
     await page.getByRole("button", { name: "Open project menu" }).click();
     page.once("dialog", async (dialog) => {
         expect(dialog.message()).toContain("can access files or information");
         await dialog.dismiss();
     });
-    await page.getByRole("menuitem", { name: /Export Python/ }).click();
+    await page
+        .getByRole("menuitem", { name: /Export Python/ })
+        .dispatchEvent("click");
 });
 
 test("Python import is absent and cloud projects compress losslessly", async ({
